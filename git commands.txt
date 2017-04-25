@@ -1,0 +1,14 @@
+Connect to remote (github) repository:
+git remote add db https://github.com/nikinsta/TrasportationsDBInterface.git
+
+Show remote repositories:
+git remote
+
+Verify new remote:
+git remote -v
+
+Show info on remote repository:
+git remote show db
+
+Fetch the data from remote repo:
+git retch db
