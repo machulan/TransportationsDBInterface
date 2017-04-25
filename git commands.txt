@@ -11,4 +11,4 @@ Show info on remote repository:
 git remote show db
 
 Fetch the data from remote repo:
-git retch db
+git fetch db
