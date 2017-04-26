@@ -58,6 +58,8 @@ from pymssql import datetime as dt
 print(pymssql.Date(2019, 12, 7))
 print(pymssql.Time(7, 8, 39))
 
+
+
 # persons.extend([(5, 'Иван', 'Иванов', dt.datetime(1900, 1, 3, 7, 8, 39, 0)),
 #                (6, 'Сергей', 'Иванов', '1900-01-03 07:10:59')])
 # cursor.executemany(
