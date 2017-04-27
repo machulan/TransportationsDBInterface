@@ -65,7 +65,6 @@ def updateRecord():
         setattr(record, field, eval(entries[field].get()))
     db[key] = record
 
-
 db = shelve.open(shelvename)
 # db.clear()
 db['nikinsta'] = Person(name='Никита', age=20, job='Нет', pay=1900)
