@@ -6,6 +6,8 @@ from tkinter import *
 from tkinter_sandbox.Tour.dialogTable import demos
 from tkinter_sandbox.Tour.quitter import Quitter
 
+def tc(var):
+    print('var :', var.get())
 
 class Demo(Frame):
     def __init__(self, parent=None, **options):
@@ -15,6 +17,13 @@ class Demo(Frame):
         for (key, value) in demos.items():
             Button(self, text=key, command=value).pack(side=TOP, fill=BOTH)
         Quitter(self).pack(side=TOP, fill=BOTH)
+
+        var = IntVar()
+        c = Checkbutton(self, text='asdfldf', variable=var)
+        c.pack()
+        c.config(command=(lambda:tc(var)))
+
+
 
 
 if __name__ == '__main__':
