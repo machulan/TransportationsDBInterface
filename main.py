@@ -41,8 +41,10 @@ cursor = conn.cursor()
 # cursor.execute("SELECT @@VERSION")
 # print(cursor.fetchone()[0])
 cursor.execute("SELECT * FROM CSVTest")
-row = cursor.fetchone()
-while row:
+rr = cursor.fetchall()
+# row = cursor.fetchone()
+# while row:
+while False:
     print("ID : {0}, First Name : {1}, Last Name : {2}, Birth Date : {3}".format(*row))
     row = cursor.fetchone()
 
