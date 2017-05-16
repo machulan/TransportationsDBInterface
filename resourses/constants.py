@@ -1,0 +1,1 @@
+LOGIN_PASSWORD_FONT = ('consolas', 24, 'bold')
