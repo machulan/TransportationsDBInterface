@@ -5,6 +5,7 @@ from resourses.constants import *
 # from main import run
 
 import shelve
+import db_helper
 
 
 # shelve.open(writeback=True)
@@ -21,6 +22,17 @@ class Account():
     def is_user(self):
         return self.rights == 'user'
 
+    def get_rights(self):
+        if self.is_user():
+            return 'Пользователь'
+        return 'Администратор'
+
+    def __repr__(self):
+        return '(' + ', '.join([self.name, self.login, self.password, self.rights]) + ')'
+
+    def __str__(self):
+        return '(' + ', '.join([self.name, self.login, self.password, self.rights]) + ')'
+
 
 def make_menu(root, account):
     root_menu = Menu(root)
@@ -36,7 +48,16 @@ def make_menu(root, account):
     root_menu.add_cascade(label='Файл', menu=file_menu)
 
     report_menu = Menu(root_menu, tearoff=False)
-    root_menu.add_cascade(label='Отчеты', menu=report_menu)
+    report_names = db_helper.get_report_names()
+    print('REPORT NAMES :', report_names)
+    print('get_number_of_kilometers_traveled :', db_helper.get_number_of_kilometers_traveled(2))
+    print('get_driver_path_lengths :', db_helper.get_driver_path_lengths())
+    print('get_profit_on_period :', db_helper.get_profit_on_period((12, 1, 2015), (12, 4, 2015)))
+    print('count_costs_on_company_development :',
+          db_helper.count_costs_on_company_development((12, 3, 2015), (13, 3, 2015)))
+    print('year_profit_statistics :', db_helper.year_profit_statistics())
+    report_menu.add_command()
+    root_menu.add_cascade(label='Отчет', menu=report_menu)
 
     help_menu = Menu(root_menu, tearoff=False)
     help_menu.add_command(label='Просмотреть справку')
@@ -85,19 +106,31 @@ def make_toolbar(root, account):
     preferencies_button.pack(side=RIGHT, fill=Y)
 
 
+class FooterLabel(Label):
+    def __init__(self, parent, **options):
+        Label.__init__(self, parent, **options)
+        self.config(font=FOOTER_LABEL_FONT)
+
+
 def make_footer(root, account):
     footer = Frame(root)
     footer.pack(side=BOTTOM, fill=X)
 
-    current_entity_label = Label(footer)
+    current_entity_label = FooterLabel(footer)
     current_entity_label.config(text='Ничего не выбрано')
     current_entity_label.pack(side=LEFT)
+
+    current_account_rights_label = FooterLabel(footer)
+    current_account_rights_label.config(text=account.get_rights() + ' : ' + account.name)
+    current_account_rights_label.pack(side=RIGHT)
 
     # widget.bind("<Control-Shift-KeyPress-q>", callback)
 
 
 def run(root, account):
     # print(account.login, account.name, account.password, account.rights)
+    root.title(ROOT_TITLE + ' [' + account.get_rights() + ']')
+
     make_menu(root, account)
 
     make_toolbar(root, account)
@@ -118,8 +151,6 @@ def run(root, account):
 
     btn = Button(main_frame, text='SDLFhds')
     btn.pack(expand=YES)
-
-
 
     make_footer(root, account)
 
@@ -150,6 +181,8 @@ def try_enter(login, password, login_entry, password_entry, input_frame, root):
 
 def run_login(root):
     preferencies = shelve.open('preferencies')
+
+    root.title(ROOT_TITLE)
 
     path = r'C:\Users\User\PycharmProjects\TransportationsDBInterface\resourses\transportations.jpg'
     path1 = '.\\resourses\\transportations.jpg'
