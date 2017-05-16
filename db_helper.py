@@ -3,6 +3,7 @@ from resourses.constants import *
 
 
 def get_connection():
+    # return pymssql.connect(**CONNECTION_DATA)
     return pymssql.connect(server=CONNECTION_DATA['server'],
                            port=CONNECTION_DATA['port'],
                            user=CONNECTION_DATA['user'],

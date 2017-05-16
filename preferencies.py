@@ -8,3 +8,5 @@ def set_preferencies():
     db['login_page'] = {'show_default_account': True,
                         'set_focus_on_enter_button': True,
                         'justify': tkinter.LEFT}
+
+    # db['']

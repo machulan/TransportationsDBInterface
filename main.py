@@ -16,7 +16,7 @@ root.minsize(width=1000, height=500)
 # root.maxsize(width=1000, height=1000)
 # root.config(bg='#000')
 
-root.resizable(width=False, height=True)
+root.resizable(width=True, height=True)
 
 
 
