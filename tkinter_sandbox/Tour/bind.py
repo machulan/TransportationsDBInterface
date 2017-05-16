@@ -117,6 +117,7 @@ tkroot.mainloop()
 # <ButtonPress-1> # нажатие левой кнопки мыши
 # <Button-1> # тоже самое
 # <1> # тоже самое
+# <Control-Shift-KeyPress-q> # Ctrl + Shift + q
 
 # event :
 # .char

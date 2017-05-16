@@ -67,3 +67,15 @@ print(pymssql.Time(7, 8, 39))
 #         VALUES
 #             (%d, %s, %s, %s)''', persons)
 # conn.commit()
+
+if __name__ == '__main__':
+    import shelve
+    from login import Account
+    admin = Account('admin', 'admin', 'admin')
+    db = shelve.open('accounts')
+    db.clear()
+    db['admin'] = admin
+
+    test_user = Account('TestUser', 'TestUser', '123456789', 'user')
+    # db = shelve.open('accounts')
+    db['TestUser'] = test_user
