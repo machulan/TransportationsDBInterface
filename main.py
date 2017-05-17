@@ -21,6 +21,16 @@ root.resizable(width=True, height=True)
 
 set_preferencies()
 login.run(root)
+
+#b = Button(root, text='BBUBUBT')
+#b.pack()
+# print(root.cget('b'))
+# root.attributes('-alpha', 0.5)
+# root.attributes('-transparentcolor', '#FFF')
+# root.attributes('-fullscreen', 1)
+# root.attributes('-toolwindow',1)
+# print(root.attributes())
+
 root.mainloop()
 
 

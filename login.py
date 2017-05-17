@@ -57,8 +57,9 @@ def try_enter(login, password, login_entry, password_entry, input_frame, root):
             rights = account.rights
             input_frame.destroy()
             print(name, 'успешно вошел в систему под логином [', login, '] и паролем [', password, '] с правами',
-                  rights)
+                  account.get_rights())
             db.close()
+            # root.overrideredirect(False)
             main_window.run(root, account)
             return
 
@@ -72,6 +73,7 @@ def run(root):
     preferencies = shelve.open('preferencies')
 
     root.title(ROOT_TITLE)
+    # root.overrideredirect(True)
 
     path = r'C:\Users\User\PycharmProjects\TransportationsDBInterface\resourses\transportations.jpg'
     path1 = '.\\resourses\\transportations.jpg'

@@ -4,14 +4,21 @@ from tkinter.filedialog import askopenfilename, askdirectory, asksaveasfilename,
     askopenfiles
 
 from resourses.constants import *
-import login
+
 # from main import run
 
 import shelve
 import db_helper
+import db_viewer
+import login
 import reports
 import raw_query
 import custom_widgets
+
+toolbar = None
+main_frame = None
+statusbar = None
+status_label = None
 
 
 # shelve.open(writeback=True)
@@ -39,7 +46,7 @@ def make_menu(root, account):
     # print('count_costs_on_company_development :',
     #       db_helper.count_costs_on_company_development((12, 3, 2015), (13, 3, 2015)))
     # print('year_profit_statistics :', db_helper.year_profit_statistics())
-    report_menu.add_command(label='Сгенерировать...', command=(lambda: reports.make_report(root, account)))
+    report_menu.add_command(label='Сгенерировать...', command=(lambda: reports.run(root, account)))
     root_menu.add_cascade(label='Отчет', menu=report_menu)
 
     if account.is_admin():
@@ -69,6 +76,8 @@ class ToolbarButton(Button):
 
 
 def make_toolbar(root, account):
+    global toolbar
+
     toolbar = Frame(root)
     toolbar.pack(side=TOP, fill=X)
     toolbar.config(padx=5, pady=3)
@@ -76,6 +85,7 @@ def make_toolbar(root, account):
 
     open_table_button = ToolbarButton(toolbar, text='Таблица...')
     open_table_button.pack(side=LEFT, fill=Y)
+    open_table_button.config(command=(lambda: db_viewer.run(root, account)))
 
     open_view_button = ToolbarButton(toolbar, text='Представление...')
     open_view_button.pack(side=LEFT, fill=Y)
@@ -87,7 +97,7 @@ def make_toolbar(root, account):
 
     make_report_button = ToolbarButton(toolbar, text='Отчет...')
     make_report_button.pack(side=LEFT, fill=Y)
-    make_report_button.config(command=(lambda: reports.make_report(root, account)))
+    make_report_button.config(command=(lambda: reports.run(root, account)))
 
     logout_button = ToolbarButton(toolbar)
     logout_image_path = '../TransportationsDBInterface/resourses/logout2.png'
@@ -119,29 +129,33 @@ def make_toolbar(root, account):
     search_button.config(activebackground='#CCF', bd=0)
 
 
-class FooterLabel(Label):
+class StatusbarLabel(Label):
     def __init__(self, parent, **options):
         Label.__init__(self, parent, **options)
-        self.config(font=FOOTER_LABEL_FONT)
+        self.config(font=STATUSBAR_LABEL_FONT)
 
 
-def make_footer(root, account):
-    footer = Frame(root)
-    footer.pack(side=BOTTOM, fill=X)
+def make_statusbar(root, account):
+    global statusbar
+    global status_label
 
-    current_entity_label = FooterLabel(footer)
-    current_entity_label.config(text='Ничего не выбрано')
-    current_entity_label.pack(side=LEFT)
+    statusbar = Frame(root)
+    statusbar.pack(side=BOTTOM, fill=X)
 
-    current_account_rights_label = FooterLabel(footer)
-    current_account_rights_label.config(text=account.get_rights() + ' : ' + account.name)
-    current_account_rights_label.pack(side=RIGHT)
+    status_label = StatusbarLabel(statusbar)
+    status_label.config(text='Ничего не выбрано')
+    status_label.pack(side=LEFT)
+
+    account_label = StatusbarLabel(statusbar)
+    account_label.config(text=account.get_rights() + ' : ' + account.name)
+    account_label.pack(side=RIGHT)
 
     # widget.bind("<Control-Shift-KeyPress-q>", callback)
-    return footer
 
 
 def make_main_frame(root):
+    global main_frame
+
     main_frame = Frame(root)
     main_frame.pack(expand=YES, fill=BOTH)
     # main_frame.config(image=)
@@ -156,8 +170,10 @@ def make_main_frame(root):
     blabel.place(x=0, y=0, relwidth=1, relheight=1)
     # blabel.pack(expand=YES, fill=BOTH)
 
-    btn = Button(main_frame, text='SDLFhds')
-    btn.pack(expand=YES)
+    show_demo_main_frame_button = False
+    if show_demo_main_frame_button:
+        btn = Button(main_frame, text='SDLFhds')
+        btn.pack(expand=YES)
 
 
 def run(root, account):
@@ -165,11 +181,18 @@ def run(root, account):
     root.title(ROOT_TITLE + ' [' + account.get_rights() + ']')
 
     make_menu(root, account)
-
     # make_toolbar(root, account)
 
     make_main_frame(root)
 
     make_toolbar(root, account)
 
-    make_footer(root, account)
+    make_statusbar(root, account)
+
+    # print()
+    print('MAIN_WINDOW [main_window.main_frame] ::', main_frame)
+    print('MAIN_WINDOW [main_window.status_label] ::', status_label)
+
+    # b = Button(root, text='Statusbar')
+    # b.pack()
+    # b.config(command=(lambda: print('MAIN_WINDOW [main_window.statusbar] ::', statusbar)))
