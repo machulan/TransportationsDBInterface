@@ -83,6 +83,10 @@ def make_toolbar(root, account):
     toolbar.config(padx=5, pady=3)
     toolbar.config(bg='#CCF')  # FFA
 
+    clear_main_frame_button = ToolbarButton(toolbar, text='Очистить main_frame')
+    clear_main_frame_button.pack(side=LEFT, fill=Y)
+    clear_main_frame_button.config(command=clear_main_frame)
+
     open_table_button = ToolbarButton(toolbar, text='Таблица...')
     open_table_button.pack(side=LEFT, fill=Y)
     open_table_button.config(command=(lambda: db_viewer.run(root, account)))
@@ -152,6 +156,22 @@ def make_statusbar(root, account):
 
     # widget.bind("<Control-Shift-KeyPress-q>", callback)
 
+def clear_main_frame():
+    global main_frame
+    main_frame_copy = main_frame.children.copy()
+    for key, widget in main_frame_copy.items():
+        widget.destroy()
+
+    bg_path = '../TransportationsDBInterface/resourses/gradient.png'
+    bi = PhotoImage(file=bg_path)
+    # blabel = Label(root, bg='#9AF')
+    blabel = Label(main_frame, image=bi)  # , text='asd')  # , bg='#9AF')
+    # blabel.place(x=-220, y=-50, relwidth=1.5, relheight=1.3)
+    blabel.image = bi
+    blabel.place(x=0, y=0, relwidth=1, relheight=1)
+
+    # status_label['text'] = 'main_frame очищен'
+    print('main_frame очищен')
 
 def make_main_frame(root):
     global main_frame
@@ -190,9 +210,10 @@ def run(root, account):
     make_statusbar(root, account)
 
     # print()
-    print('MAIN_WINDOW [main_window.main_frame] ::', main_frame)
-    print('MAIN_WINDOW [main_window.status_label] ::', status_label)
+    # print('MAIN_WINDOW [main_window.main_frame] ::', main_frame)
+    # print('MAIN_WINDOW [main_window.status_label] ::', status_label)
 
-    # b = Button(root, text='Statusbar')
-    # b.pack()
-    # b.config(command=(lambda: print('MAIN_WINDOW [main_window.statusbar] ::', statusbar)))
+    #b = Button(root, text='Statusbar')
+    #b.pack()
+    #b.config(command=(lambda: print('MAIN_WINDOW [main_window.statusbar] ::', statusbar)
+                              #or print('MAIN_WINDOW [main_window.main_frame] ::', main_frame)))

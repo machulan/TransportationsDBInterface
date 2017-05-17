@@ -3,14 +3,17 @@ import db_helper
 import custom_widgets
 from resourses.constants import *
 import main_window
+# from main import root
 
+report_view_frame = None
 
 class ScrolledReportList(Frame):
-    def __init__(self, parent, reports, **options):
+    def __init__(self, parent, reports, root, **options):
         Frame.__init__(self, parent, **options)
         # self.pack(expand=YES, fill=BOTH)  # сделать растягиваемым
         self.reports = reports
         self.make_widgets()
+        self.root = root
 
     def handle_list(self, event):
         index = self.listbox.curselection()[0]  # при двойном щелчке на списке
@@ -34,7 +37,7 @@ class ScrolledReportList(Frame):
         for pos, (report_name, report_function) in enumerate(self.reports):
             self.listbox.insert(pos, report_name)
 
-        self.listbox.config(selectmode=SINGLE, setgrid=1)
+        self.listbox.config(selectmode=SINGLE) #, setgrid=1)
         self.listbox.bind('<Double-1>', self.handle_list)
         self.listbox.bind('<Return>', self.handle_list)
 
@@ -42,26 +45,31 @@ class ScrolledReportList(Frame):
         #   print('You selected:', selection)
 
 
-def get_number_of_kilometers_traveled(report_name, account):
+def get_number_of_kilometers_traveled(report_name, root, account):
     print('Report getting window 0')
-    window = Toplevel()
-    window.title(report_name + ' [' + account.get_rights() + ']')
-    window.focus_set()
+    # main.root.title()
+    main_window.status_label['text'] = 'Отчет : ' + report_name
+    # window = Toplevel()
+    # window.title(report_name + ' [' + account.get_rights() + ']')
+    # window.focus_set()
+    global report_view_frame
 
 
-def get_driver_path_lengths(report_name, account):
+
+
+def get_driver_path_lengths(report_name, root, account):
     print('Report getting window 1')
 
 
-def get_profit_on_period(report_name, account):
+def get_profit_on_period(report_name, root, account):
     print('Report getting window 2')
 
 
-def count_costs_on_company_development(report_name, account):
+def count_costs_on_company_development(report_name, root, account):
     print('Report getting window 3')
 
 
-def year_profit_statistics(report_name, account):
+def year_profit_statistics(report_name, root, account):
     print('Report getting window 4')
 
 def run(root, account):
@@ -72,11 +80,23 @@ def run(root, account):
     # window.wm_minsize(height=5, width=55)
     # window.maxsize(height=5)
 
-    # main_window.status_label['text'] = 'Выбор отчета'
+    main_window.status_label['text'] = 'Выбор отчета'
     # print('REPORTS [main_window.statusbar] ::', main_window.statusbar)
     # main_window.statusbar = Frame(root)
     # main_window.statusbar.pack()
     # print('REPORTS [main_window.statusbar] ::', main_window.statusbar)
+    # print('REPORTS [main_window.main_frame] ::', main_window.main_frame)
+
+    main_window.clear_main_frame()
+    paned_window = PanedWindow(main_window.main_frame)
+    paned_window.pack(fill=BOTH, expand=YES, side=LEFT)
+    paned_window.config(orient=HORIZONTAL)
+    paned_window.config(sashrelief=GROOVE, sashwidth=10) # relief ::= FLAT, SUNKEN, RAISED, GROOVE, SOLID, RIDGE
+
+
+
+    # b = Button(main_window.main_frame, text='ЗАГЛУШКА')
+    # b.pack()
 
     report_names = [
         'Количество километров в пути для заданного водителя',
@@ -87,17 +107,35 @@ def run(root, account):
     ]
 
     report_functions = [
-        lambda: get_number_of_kilometers_traveled(report_names[0], account),
-        lambda: get_driver_path_lengths(report_names[1], account),
-        lambda: get_profit_on_period(report_names[2], account),
-        lambda: count_costs_on_company_development(report_names[3], account),
-        lambda: year_profit_statistics(report_names[4], account)
+        lambda: get_number_of_kilometers_traveled(report_names[0], root, account),
+        lambda: get_driver_path_lengths(report_names[1], root, account),
+        lambda: get_profit_on_period(report_names[2], root, account),
+        lambda: count_costs_on_company_development(report_names[3], root, account),
+        lambda: year_profit_statistics(report_names[4], root, account)
     ]
 
     reports = [(report_names, report_function) for report_names, report_function in zip(report_names, report_functions)]
 
-    scrolled_report_list = ScrolledReportList(main_window.main_frame, reports)
-    scrolled_report_list.pack(side=LEFT, expand=NO, fill=Y)
+    # listbox = Listbox(main_window.main_frame, relief=SUNKEN)
+    # listbox.pack(side=LEFT, expand=NO, fill=Y)  # список обрезается первым
+    # for pos, (report_name, report_function) in enumerate(reports):
+    #     listbox.insert(pos, report_name)
+    # listbox.config(selectmode=SINGLE)# , setgrid=1)
+    # def handle_list(event):
+    #     index = listbox.curselection()[0]  # при двойном щелчке на списке
+    #     # report_name = self.listbox.get(index)
+    #     report = reports[index]
+    #     print('Report [', report[0], '] was chosen')
+    #     report[1]()
+    main_window.status_label['text'] = 'Выбор отчета'
+    # listbox.bind('<Double-1>', handle_list)
+    # listbox.bind('<Return>', handle_list)
+
+    # scrolled_report_list = ScrolledReportList(main_window.main_frame, reports, root)
+    scrolled_report_list = ScrolledReportList(paned_window, reports, root)
+    # scrolled_report_list.pack(side=LEFT, expand=NO, fill=Y)
+    paned_window.add(scrolled_report_list)
+    scrolled_report_list.listbox.config(width=55)
     scrolled_report_list.listbox.config(font=REPORT_NAME_FONT)
     scrolled_report_list.listbox.config(selectmode=BROWSE, activestyle=DOTBOX)  # setgrid=10) '#5F5' - light green
     scrolled_report_list.listbox.config(selectbackground='#5F5', selectforeground='black')
@@ -111,6 +149,14 @@ def run(root, account):
     scrolled_report_list_item_colors = ['#DDD', '#AAA']  # ['#CCF', '#EEF']
     for pos in range(len(scrolled_report_list.reports)):
         scrolled_report_list.listbox.itemconfig(pos, background=scrolled_report_list_item_colors[pos % 2])
+
+    # scrolled_report_list2 = ScrolledReportList(paned_window, reports, root)
+    # paned_window.add(scrolled_report_list2)
+    global report_view_frame
+    report_view_frame = Frame(paned_window)
+    paned_window.add(report_view_frame)
+
+    report_view_frame.config(bd=10, relief=SOLID)
 
     # li = (str(x * x) for x in range(5))
 

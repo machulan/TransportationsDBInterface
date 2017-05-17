@@ -1,5 +1,7 @@
 # https://docs.python.org/2/library/ttk.html#ttk.Notebook
 
+# tabbed window
+
 from tkinter import *
 from tkinter.ttk import *
 
