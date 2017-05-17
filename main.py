@@ -1,5 +1,6 @@
 from tkinter import *
-from login import run_login, Account
+import login
+from resourses.constants import *
 from preferencies import *
 from tkinter.messagebox import *
 
@@ -8,7 +9,7 @@ import shelve
 root = Tk()
 
 root.state('zoomed')
-root.title('Транспортные перевозки')
+root.title(ROOT_TITLE)
 root.minsize(width=1000, height=500)
 
 # root.protocol('WM_ICONIFY_WINDOW', lambda: None)
@@ -18,10 +19,13 @@ root.minsize(width=1000, height=500)
 
 root.resizable(width=True, height=True)
 
+set_preferencies()
+login.run(root)
+root.mainloop()
 
 
-def notdone():
-    showerror('Not implemented', 'Not yet available')
+# def notdone():
+#    showerror('Not implemented', 'Not yet available')
 
 # root_menu = Menu(root)
 # root.config(menu=root_menu)
@@ -46,14 +50,4 @@ def notdone():
 
 
 
-set_preferencies()
 
-run_login(root)
-
-# b = Button(root, text='wdkjsakj')
-# b.pack()
-# b.config(command=(lambda: print(cur_account)))
-
-# print('Netee')
-
-root.mainloop()
