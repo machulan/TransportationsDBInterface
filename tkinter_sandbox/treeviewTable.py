@@ -4,7 +4,7 @@ from tkinter import ttk as ttk
 root = Tk()
 
 tree = ttk.Treeview(root)
-tree.pack()
+tree.pack(expand=YES, fill=BOTH)
 
 tree["columns"] = ("one", "two")
 tree.column("one", width=100)
@@ -31,8 +31,9 @@ tree.insert("dir4", 3, text="sub dir 4", values=('AbcdeAbcdeAbcdeAbcdeAbcdeAbcde
 #tree.selection_set(['dir3'])
 tree.selection_toggle(['dir3'])
 
-
 c = tree.get_children('dir3')
+# print(tree.selection_get())
+# print(c)
 print(tree.selection())
 
 root.mainloop()

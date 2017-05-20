@@ -1,5 +1,8 @@
 from tkinter import *
+import tkinter.tix as tix
+import tkinter.ttk as ttk
 import db_helper
+import db_viewer
 import custom_widgets
 from resourses.constants import *
 import main_window
@@ -87,11 +90,26 @@ def get_number_of_kilometers_traveled(report_name, root, account):
     # window.focus_set()
     global report_frame
 
-    report_arguments_frame = Frame(report_frame)
-    report_frame.pack()
+   #report_arguments_frame = Frame(report_frame)
+    #report_frame.pack()
 
-    report_viewer_frame = Frame(report_frame)
-    report_frame.pack()
+    #report_viewer_frame = Frame(report_frame)
+    #report_frame.pack()
+
+    #lframe = tix.LabelFrame(report_frame)
+
+    return
+
+    paned_window = PanedWindow(report_frame)
+    paned_window.pack(fill=BOTH, expand=YES, side=LEFT)
+
+    paned_window.config(orient=VERTICAL)
+    paned_window.config(sashrelief=GROOVE, sashwidth=10)
+
+
+
+    #paned_window.add(scrolled_table_list)
+
 
 
 def get_driver_path_lengths(report_name, root, account):
@@ -103,19 +121,29 @@ def get_driver_path_lengths(report_name, root, account):
     global report_frame
     global report_viewer_frame
 
+    report_data = db_helper.get_driver_path_lengths()
+    column_names = ['Идентификатор', 'Имя', 'Фамилия', 'Длина пути']
+
+    #print(report_data)
+
+    grid = db_viewer.ScrolledGridViewer(report_frame, column_names, report_data)
+    grid.pack(expand=YES, fill=BOTH)
+
+
+
     # report_viewer_frame = ScrolledFrame(report_frame)
     # report_viewer_frame.pack(expand=YES, fill=BOTH)
-    scrolled_canvas = ScrolledCanvas(report_frame)
-    scrolled_canvas.pack(expand=YES, fill=BOTH)
-    report_viewer_frame = Frame(scrolled_canvas)
-    scrolled_canvas.create_window((0, 0), window=report_viewer_frame, anchor=NW)
+    #scrolled_canvas = ScrolledCanvas(report_frame)
+    #scrolled_canvas.pack(expand=YES, fill=BOTH)
+    #report_viewer_frame = Frame(scrolled_canvas)
+    #scrolled_canvas.create_window((0, 0), window=report_viewer_frame, anchor=NW)
 
-    report_viewer_frame.config(bg='red')
+    #report_viewer_frame.config(bg='red')
 
-    report_viewer_frame.config(width=500, height=2000)
+    #report_viewer_frame.config(width=500, height=2000)
 
-    import tkinter.tix as tix
-    #bln = tix.Balloon(report_viewer_frame)
+    #import tkinter.tix as tix
+    # bln = tix.Balloon(report_viewer_frame)
     # b = Button(report_viewer_frame, text='ASD:AKD')
 
 
@@ -164,6 +192,7 @@ def year_profit_statistics(report_name, root, account):
 
 def run(root, account):
     """В MAIN_FRAME"""
+    main_window.clear_main_frame(root, account)
 
     # window = Toplevel(root)
     root.title(REPORT_LIST_WINDOW_TITLE + ' [' + account.get_rights() + ']')
@@ -177,7 +206,7 @@ def run(root, account):
     # print('REPORTS [main_window.statusbar] ::', main_window.statusbar)
     # print('REPORTS [main_window.main_frame] ::', main_window.main_frame)
 
-    main_window.clear_main_frame()
+
     paned_window = PanedWindow(main_window.main_frame)
     paned_window.pack(fill=BOTH, expand=YES, side=LEFT)
     paned_window.config(orient=HORIZONTAL)
@@ -202,7 +231,7 @@ def run(root, account):
         lambda: year_profit_statistics(report_names[4], root, account)
     ]
 
-    reports = [(report_names, report_function) for report_names, report_function in zip(report_names, report_functions)]
+    reports = [(report_name, report_function) for report_name, report_function in zip(report_names, report_functions)]
 
     # listbox = Listbox(main_window.main_frame, relief=SUNKEN)
     # listbox.pack(side=LEFT, expand=NO, fill=Y)  # список обрезается первым

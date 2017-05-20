@@ -36,3 +36,9 @@ def set_preferencies():
     ]
 
     db['reports'] = {}
+
+    # import tkinter.ttk as ttk
+    # import tkinter.font as tkfont
+    # f = tkfont.Font(family='consolas', size=-30)
+    # st = ttk.Style()
+    # st.configure('.', font=f)

@@ -85,7 +85,7 @@ def make_toolbar(root, account):
 
     clear_main_frame_button = ToolbarButton(toolbar, text='Очистить main_frame')
     clear_main_frame_button.pack(side=LEFT, fill=Y)
-    clear_main_frame_button.config(command=clear_main_frame)
+    clear_main_frame_button.config(command=(lambda: clear_main_frame(root, account)))
 
     open_table_button = ToolbarButton(toolbar, text='Таблица...')
     open_table_button.pack(side=LEFT, fill=Y)
@@ -156,7 +156,9 @@ def make_statusbar(root, account):
 
     # widget.bind("<Control-Shift-KeyPress-q>", callback)
 
-def clear_main_frame():
+def clear_main_frame(root, account):
+    root.title(ROOT_TITLE + ' [' + account.get_rights() + ']')
+
     global main_frame
     main_frame_copy = main_frame.children.copy()
     for key, widget in main_frame_copy.items():

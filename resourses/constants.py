@@ -4,10 +4,14 @@ TOOLBAR_BUTTON_FONT = ('consolas', 12, 'bold')
 STATUSBAR_LABEL_FONT = ('consolas', 12, 'italic')
 RAW_QUERY_FONT = ('consolas', 20, 'bold')
 REPORT_NAME_FONT = ('consolas', 16, 'bold')
+TABLE_NAME_FONT = ('consolas', 20, 'bold')
+VIEW_NAME_FONT = ('consolas', 20, 'bold')
 
 # Titles
 ROOT_TITLE = 'Транспортные перевозки'
 REPORT_LIST_WINDOW_TITLE = 'Отчеты'
+TABLE_LIST_WINDOW_TITLE = 'Таблицы'
+VIEW_LIST_WINDOW_TITLE = 'Представления'
 VIEW_TITLE = 'Работа с базой данных'
 
 # Data base settings

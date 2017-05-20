@@ -3,6 +3,7 @@ import tkinter.tix as tix
 import login
 from resourses.constants import *
 from preferencies import *
+from styles import *
 from tkinter.messagebox import *
 
 import shelve
@@ -21,6 +22,7 @@ root.minsize(width=1000, height=500)
 
 root.resizable(width=True, height=True)
 
+# set_styles()
 set_preferencies()
 login.run(root)
 
