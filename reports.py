@@ -3,6 +3,7 @@ import tkinter.tix as tix
 import tkinter.ttk as ttk
 import db_helper
 import db_viewer
+import dialogs
 import custom_widgets
 from resourses.constants import *
 import main_window
@@ -81,6 +82,12 @@ class ScrolledFrame(Frame):
         self.canvas.create_window((0, 0), window=self.frame, anchor=NW)
 
 
+def clear_report_frame():
+    report_frame_copy = report_frame.children.copy()
+    for key, widget in report_frame_copy.items():
+        widget.destroy()
+
+
 def get_number_of_kilometers_traveled(report_name, root, account):
     print('Report getting window 0')
     # main.root.title()
@@ -88,15 +95,34 @@ def get_number_of_kilometers_traveled(report_name, root, account):
     # window = Toplevel()
     # window.title(report_name + ' [' + account.get_rights() + ']')
     # window.focus_set()
+
+    driver_table_id = 4
+
+    selected_item = dialogs.ask_table_row(driver_table_id, root, account)
+    if selected_item is None:
+        print('Ничего не выбрано')
+        return
+
     global report_frame
+    clear_report_frame()
 
-   #report_arguments_frame = Frame(report_frame)
-    #report_frame.pack()
+    # begin, end = (12, 1, 2015), (12, 4, 2015)
+    driver_id = selected_item[0]
+    report_data = db_helper.get_number_of_kilometers_traveled(driver_id)
+    column_names = ['Результат']
 
-    #report_viewer_frame = Frame(report_frame)
-    #report_frame.pack()
+    grid = db_viewer.ScrolledGridViewer(report_frame, column_names, report_data)
+    grid.pack(expand=YES, fill=BOTH)
 
-    #lframe = tix.LabelFrame(report_frame)
+    # print(selected_items)
+
+    # report_arguments_frame = Frame(report_frame)
+    # report_frame.pack()
+
+    # report_viewer_frame = Frame(report_frame)
+    # report_frame.pack()
+
+    # lframe = tix.LabelFrame(report_frame)
 
     return
 
@@ -108,41 +134,41 @@ def get_number_of_kilometers_traveled(report_name, root, account):
 
 
 
-    #paned_window.add(scrolled_table_list)
-
+    # paned_window.add(scrolled_table_list)
 
 
 def get_driver_path_lengths(report_name, root, account):
-    print('Report getting window 1')
+    print("""Запушена процедура, возвращающая множество четверок
+        'id водителя, имя водителя, фамилия водителя, количество проезженных километров'""")
     main_window.status_label['text'] = 'Отчет : ' + report_name
     # window = Toplevel()
     # window.title(report_name + ' [' + account.get_rights() + ']')
     # window.focus_set()
     global report_frame
+    clear_report_frame()
+
     global report_viewer_frame
 
     report_data = db_helper.get_driver_path_lengths()
     column_names = ['Идентификатор', 'Имя', 'Фамилия', 'Длина пути']
 
-    #print(report_data)
+    # print(report_data)
 
     grid = db_viewer.ScrolledGridViewer(report_frame, column_names, report_data)
     grid.pack(expand=YES, fill=BOTH)
 
-
-
     # report_viewer_frame = ScrolledFrame(report_frame)
     # report_viewer_frame.pack(expand=YES, fill=BOTH)
-    #scrolled_canvas = ScrolledCanvas(report_frame)
-    #scrolled_canvas.pack(expand=YES, fill=BOTH)
-    #report_viewer_frame = Frame(scrolled_canvas)
-    #scrolled_canvas.create_window((0, 0), window=report_viewer_frame, anchor=NW)
+    # scrolled_canvas = ScrolledCanvas(report_frame)
+    # scrolled_canvas.pack(expand=YES, fill=BOTH)
+    # report_viewer_frame = Frame(scrolled_canvas)
+    # scrolled_canvas.create_window((0, 0), window=report_viewer_frame, anchor=NW)
 
-    #report_viewer_frame.config(bg='red')
+    # report_viewer_frame.config(bg='red')
 
-    #report_viewer_frame.config(width=500, height=2000)
+    # report_viewer_frame.config(width=500, height=2000)
 
-    #import tkinter.tix as tix
+    # import tkinter.tix as tix
     # bln = tix.Balloon(report_viewer_frame)
     # b = Button(report_viewer_frame, text='ASD:AKD')
 
@@ -153,8 +179,8 @@ def get_driver_path_lengths(report_name, root, account):
 
     report_data = db_helper.get_driver_path_lengths()
 
-    #canvas = ScrolledCanvas(report_viewer_frame)  # , bg='green')#, width=200, height=300, bg='green')
-    #canvas.pack(expand=YES, fill=BOTH)
+    # canvas = ScrolledCanvas(report_viewer_frame)  # , bg='green')#, width=200, height=300, bg='green')
+    # canvas.pack(expand=YES, fill=BOTH)
 
     column_names = ['Идентификатор', 'Имя', 'Фамилия', 'Длина пути']
     column_count = len(column_names)
@@ -179,15 +205,63 @@ def get_driver_path_lengths(report_name, root, account):
 
 
 def get_profit_on_period(report_name, root, account):
-    print('Report getting window 2')
+    """процедура расчета затрат на развитие предприятия за период"""
+    print('Формируется отчет "' + report_name + '"')
+
+    main_window.status_label['text'] = 'Отчет : ' + report_name
+
+    begin, end = dialogs.ask_date_period()
+    if begin is None:
+        return
+
+    global report_frame
+    clear_report_frame()
+
+    #begin, end = (12, 1, 2015), (12, 4, 2015)
+
+    report_data = db_helper.get_profit_on_period(begin, end)
+    column_names = ['Результат']
+
+    grid = db_viewer.ScrolledGridViewer(report_frame, column_names, report_data)
+    grid.pack(expand=YES, fill=BOTH)
 
 
 def count_costs_on_company_development(report_name, root, account):
-    print('Report getting window 3')
+    """процедура расчета затрат на развитие предприятия за период(begin, end, Cost OUTPUT)"""
+    print('Формируется отчет "' + report_name + '"')
+
+    main_window.status_label['text'] = 'Отчет : ' + report_name
+
+    begin, end = dialogs.ask_date_period()
+    if begin is None:
+        return
+
+    global report_frame
+    clear_report_frame()
+
+    # begin, end = (12, 1, 2015), (12, 4, 2015)
+
+    report_data = db_helper.count_costs_on_company_development(begin, end)
+    column_names = ['Результат']
+
+    grid = db_viewer.ScrolledGridViewer(report_frame, column_names, report_data)
+    grid.pack(expand=YES, fill=BOTH)
 
 
 def year_profit_statistics(report_name, root, account):
-    print('Report getting window 4')
+    """статистика доходов предприятия по годам за все время(ResultCursor OUTPUT)"""
+    print('Формируется отчет "' + report_name + '"')
+
+    main_window.status_label['text'] = 'Отчет : ' + report_name
+
+    global report_frame
+    clear_report_frame()
+
+    report_data = db_helper.year_profit_statistics()
+    column_names = ['Год', 'Прибыль', 'Абсолютный рост', 'Относительный рост, %']
+
+    grid = db_viewer.ScrolledGridViewer(report_frame, column_names, report_data)
+    grid.pack(expand=YES, fill=BOTH)
 
 
 def run(root, account):

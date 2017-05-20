@@ -14,6 +14,24 @@ table_frame = None
 view_frame = None
 
 
+def clear_frame(frame):
+    frame_copy = frame.children.copy()
+    for key, widget in frame_copy.items():
+        widget.destroy()
+
+
+def clear_table_frame():
+    table_frame_copy = table_frame.children.copy()
+    for key, widget in table_frame_copy.items():
+        widget.destroy()
+
+
+def clear_view_frame():
+    view_frame_copy = view_frame.children.copy()
+    for key, widget in view_frame_copy.items():
+        widget.destroy()
+
+
 class ScrolledGridViewer(Frame):
     def __init__(self, master=None, headings=tuple(), rows=tuple()):
         Frame.__init__(self, master)
@@ -39,7 +57,26 @@ class ScrolledGridViewer(Frame):
         xscrollbar.pack(side=BOTTOM, expand=NO, fill=X)
         table.pack(side=LEFT, expand=YES, fill=BOTH)
 
+        self.table = table
+        self.table.bind("<<TreeviewSelect>>", lambda event: self.print_status())
 
+        self.selected_item = None
+
+    def print_status(self):
+        iid = self.table.focus()
+        print('Selected item with id :', iid)
+        selected_item_label_text = 'Запись :' + str(int('0x' + iid[1:], 16))
+        main_window.selected_item_label.config(text=selected_item_label_text)
+
+        item = self.table.item(iid)
+        print(item)
+        self.selected_item = item
+
+    #def selected_item(self):
+        # iid = self.table.focus()
+        # item = self.table.item(iid)
+        # print('Selected item id:', item)
+        # return item
 
 
 class ScrolledTableList(Frame):
@@ -92,14 +129,20 @@ def get_test_table(column_count, row_count):
 
 
 def open_table(table_id):
-    print('Table [ ' + TABLE_NAMES_INTERFACE[table_id] + ' ] is opening...')
+    print('Table [ ' + INTERFACE_TABLE_NAMES[table_id] + ' ] is opening...')
 
     global table_frame
+    clear_table_frame()
     table_frame.config(bd=5)
 
-    temp_headings, temp_rows = get_test_table(7, 100)
+    # temp_headings, temp_rows = get_test_table(7, 100)
 
-    grid_viewer = ScrolledGridViewer(table_frame, temp_headings, temp_rows)
+    table_data = db_helper.select_all_from(DATABASE_TABLE_NAMES[table_id])
+
+    print(table_data)
+    column_names = tuple(['column ' + str(i) for i in range(len(table_data[0]))])
+
+    grid_viewer = ScrolledGridViewer(table_frame, column_names, table_data)
     grid_viewer.pack(expand=YES, fill=BOTH)
 
     # treeview.insert('', 0, 'tables', text='Tables', tags=['tables tag'])
@@ -115,7 +158,7 @@ def open_table(table_id):
 
 
 def open_view(view_id):
-    print('View [ ' + VIEW_NAMES_INTERFACE[view_id] + ' ] is opening...')
+    print('View [ ' + INTERFACE_VIEW_NAMES[view_id] + ' ] is opening...')
     pass
 
 
@@ -169,11 +212,11 @@ def run(root, account):
     ]"""
 
     table_functions = []
-    for table_id in range(len(TABLE_NAMES_DATABASE)):
+    for table_id in range(len(DATABASE_TABLE_NAMES)):
         table_functions.append(lambda table_id=table_id: open_table(table_id))
 
     tables = [(table_name, table_function) for table_name, table_function in
-              zip(TABLE_NAMES_INTERFACE, table_functions)]
+              zip(INTERFACE_TABLE_NAMES, table_functions)]
 
     scrolled_table_list = ScrolledTableList(paned_window, tables)
     # scrolled_report_list.pack(side=LEFT, expand=NO, fill=Y)
@@ -223,7 +266,7 @@ def run(root, account):
     ]
 
     views = [(view_name, view_function) for view_name, view_function in
-             zip(VIEW_NAMES_INTERFACE, view_functions)]
+             zip(INTERFACE_VIEW_NAMES, view_functions)]
 
     scrolled_view_list = ScrolledTableList(view_paned_window, views)
     # scrolled_report_list.pack(side=LEFT, expand=NO, fill=Y)
@@ -322,10 +365,10 @@ def run(root, account):
         hlist.add(ts, text='Таблицы')
         hlist.add(vs, text='Представления')
 
-        for i in range(len(TABLE_NAMES_DATABASE)):
-            hlist.add(ts + '.' + TABLE_NAMES_DATABASE[i], text=TABLE_NAMES_INTERFACE[i])
-        for i in range(len(VIEW_NAMES_DATABASE)):
-            hlist.add(vs + '.' + VIEW_NAMES_DATABASE[i], text=VIEW_NAMES_INTERFACE[i])
+        for i in range(len(DATABASE_TABLE_NAMES)):
+            hlist.add(ts + '.' + DATABASE_TABLE_NAMES[i], text=INTERFACE_TABLE_NAMES[i])
+        for i in range(len(DATABASE_VIEW_NAMES)):
+            hlist.add(vs + '.' + DATABASE_VIEW_NAMES[i], text=INTERFACE_VIEW_NAMES[i])
 
     return
 

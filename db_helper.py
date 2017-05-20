@@ -13,7 +13,10 @@ def get_connection():
 
 def get_str_date(date):
     # print(get_str_date((5, 45, 7)))
-    return '.'.join(map(str, date))
+
+    date = pymssql.Date(*reversed(date))
+
+    return '.'.join(reversed(str(date).split('-')))
 
 
 def get_report_names():
@@ -46,7 +49,7 @@ def get_number_of_kilometers_traveled(driver_id):
 
         SELECT @Number;
                 """)
-    result = cursor.fetchall()[0][0]
+    result = cursor.fetchall()
     conn.close()
     return result
 
@@ -84,10 +87,11 @@ def get_driver_path_lengths():
     return result
 
 
-def get_profit_on_period(begin=(0, 0, 0), end=(0, 0, 0)):
+def get_profit_on_period(begin=(1, 1, 1), end=(1, 1, 1)):
     """процедура расчета прибыли за заданный период(begin, end, Result OUTPUT)"""
     conn = pymssql.connect(**CONNECTION_DATA)
     cursor = conn.cursor()
+
     cursor.execute("""
         DECLARE @SumProfit FLOAT
         DECLARE @ReturnStatus INT
@@ -99,7 +103,7 @@ def get_profit_on_period(begin=(0, 0, 0), end=(0, 0, 0)):
         SELECT @SumProfit;
         """)
 
-    result = cursor.fetchone()[0]
+    result = cursor.fetchall()
     conn.close()
     return result
 
@@ -117,7 +121,7 @@ def count_costs_on_company_development(begin=(0, 0, 0), end=(0, 0, 0)):
         SELECT @CostOnCompanyDevelopment;
         """)
 
-    result = cursor.fetchone()[0]
+    result = cursor.fetchall()
     conn.close()
     return result
 
@@ -148,21 +152,31 @@ def year_profit_statistics():
         DEALLOCATE @YearProfitStatisticsCursor;
 
         SELECT *
-        FROM #Result;
+        FROM #Result AS rt
+        ORDER BY rt.year_
         """)
 
     result = cursor.fetchall()
     conn.close()
     return result
 
-
-
-
-
     # cursor.execute("SELECT @@VERSION")
     # print(cursor.fetchone()[0])
     # cursor.execute("SELECT * FROM CSVTest")
     # rr = cursor.fetchall()
+
+
+def select_all_from(table_name):
+    conn = pymssql.connect(**CONNECTION_DATA)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT *
+        FROM
+        """ + table_name)
+
+    result = cursor.fetchall()
+    conn.close()
+    return result
 
 
 # import pyodbc

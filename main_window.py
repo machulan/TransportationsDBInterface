@@ -19,6 +19,7 @@ toolbar = None
 main_frame = None
 statusbar = None
 status_label = None
+selected_item_label = None
 
 
 # shelve.open(writeback=True)
@@ -142,13 +143,18 @@ class StatusbarLabel(Label):
 def make_statusbar(root, account):
     global statusbar
     global status_label
+    global selected_item_label
 
     statusbar = Frame(root)
     statusbar.pack(side=BOTTOM, fill=X)
 
     status_label = StatusbarLabel(statusbar)
-    status_label.config(text='Ничего не выбрано')
+    status_label.config(text='Ничего не открыто')
     status_label.pack(side=LEFT)
+
+    selected_item_label = StatusbarLabel(statusbar)
+    selected_item_label.config(text='Ничего не выбрано')
+    selected_item_label.pack(side=LEFT, padx=50)
 
     account_label = StatusbarLabel(statusbar)
     account_label.config(text=account.get_rights() + ' : ' + account.name)
