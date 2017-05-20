@@ -1,4 +1,5 @@
 from tkinter import *
+import tkinter.tix as tix
 import login
 from resourses.constants import *
 from preferencies import *
@@ -7,7 +8,7 @@ from tkinter.messagebox import *
 import shelve
 
 
-root = Tk()
+root = tix.Tk()
 
 root.state('zoomed')
 root.title(ROOT_TITLE)

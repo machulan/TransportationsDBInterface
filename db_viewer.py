@@ -1,4 +1,5 @@
 from tkinter import *
+import tkinter.tix as tix
 
 from resourses.constants import *
 
@@ -13,6 +14,24 @@ def run(root, account):
     print('DB_VIEWER [main_window.status_label] ::', main_window.status_label)
 
     main_window.clear_main_frame()
+
+    hlist = tix.HList(main_window.main_frame)
+    hlist.pack(side=LEFT, fill=Y)
+    hlist.config(indent=14, drawbranch=TRUE, wideselection=FALSE)
+    hlist.config(font=('consolas', 20, ''))
+
+    hlist.add('f', text='f')
+    hlist.add('s', text='s')
+
+    hlist.add('f.f', text='f.f')
+    hlist.add('f.s', text='f.s')
+
+    hlist.add('s.f', text='s.f')
+    hlist.add('s.s', text='s.s')
+
+    return
+
+    # TODO BELOW TEMP
 
     data = db_helper.year_profit_statistics()
     print('year_profit_statistics :', data)

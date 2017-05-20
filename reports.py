@@ -3,9 +3,11 @@ import db_helper
 import custom_widgets
 from resourses.constants import *
 import main_window
+
 # from main import root
 
-report_view_frame = None
+report_frame = None
+
 
 class ScrolledReportList(Frame):
     def __init__(self, parent, reports, root, **options):
@@ -37,12 +39,43 @@ class ScrolledReportList(Frame):
         for pos, (report_name, report_function) in enumerate(self.reports):
             self.listbox.insert(pos, report_name)
 
-        self.listbox.config(selectmode=SINGLE) #, setgrid=1)
+        self.listbox.config(selectmode=SINGLE)  # , setgrid=1)
         self.listbox.bind('<Double-1>', self.handle_list)
         self.listbox.bind('<Return>', self.handle_list)
 
         # def run_command(self, selection):  # необходимо переопределить
         #   print('You selected:', selection)
+
+
+class ScrolledCanvas(Canvas):
+    def __init__(self, master, **options):
+        Canvas.__init__(self, master, **options)
+
+        self.scrollbar = Scrollbar(master, orient=VERTICAL)
+        # self.canvas = Canvas(self, 0, 0, bg='yellow')
+
+        self.scrollbar.config(command=self.yview)
+        self.config(yscrollcommand=self.scrollbar.set)
+
+        self.pack(side=LEFT, expand=YES, fill=BOTH)
+        self.scrollbar.pack(side=LEFT, fill=Y)
+
+
+class ScrolledFrame(Frame):
+    def __init__(self, master=None, **options):
+        Frame.__init__(self, master, **options)
+
+        self.canvas = Canvas(self)
+        self.canvas.pack(side=LEFT, expand=YES, fill=BOTH)
+
+        self.scrollbar = Scrollbar(self)
+        self.scrollbar.pack(side=RIGHT, orient=VERTICAL, fill=Y)
+
+        self.scrollbar.config(command=self.canvas.yview)
+        self.canvas.config(yscrollcommand=self.scrollbar.set)
+
+        self.frame = Frame(self.canvas)
+        self.canvas.create_window((0, 0), window=self.frame, anchor=NW)
 
 
 def get_number_of_kilometers_traveled(report_name, root, account):
@@ -52,13 +85,69 @@ def get_number_of_kilometers_traveled(report_name, root, account):
     # window = Toplevel()
     # window.title(report_name + ' [' + account.get_rights() + ']')
     # window.focus_set()
-    global report_view_frame
+    global report_frame
 
+    report_arguments_frame = Frame(report_frame)
+    report_frame.pack()
 
+    report_viewer_frame = Frame(report_frame)
+    report_frame.pack()
 
 
 def get_driver_path_lengths(report_name, root, account):
     print('Report getting window 1')
+    main_window.status_label['text'] = 'Отчет : ' + report_name
+    # window = Toplevel()
+    # window.title(report_name + ' [' + account.get_rights() + ']')
+    # window.focus_set()
+    global report_frame
+    global report_viewer_frame
+
+    # report_viewer_frame = ScrolledFrame(report_frame)
+    # report_viewer_frame.pack(expand=YES, fill=BOTH)
+    scrolled_canvas = ScrolledCanvas(report_frame)
+    scrolled_canvas.pack(expand=YES, fill=BOTH)
+    report_viewer_frame = Frame(scrolled_canvas)
+    scrolled_canvas.create_window((0, 0), window=report_viewer_frame, anchor=NW)
+
+    report_viewer_frame.config(bg='red')
+
+    report_viewer_frame.config(width=500, height=2000)
+
+    import tkinter.tix as tix
+    #bln = tix.Balloon(report_viewer_frame)
+    # b = Button(report_viewer_frame, text='ASD:AKD')
+
+
+    # tix.Tli
+    import Pmw.Pmw_2_0_1.demos.Balloon
+    return
+
+    report_data = db_helper.get_driver_path_lengths()
+
+    #canvas = ScrolledCanvas(report_viewer_frame)  # , bg='green')#, width=200, height=300, bg='green')
+    #canvas.pack(expand=YES, fill=BOTH)
+
+    column_names = ['Идентификатор', 'Имя', 'Фамилия', 'Длина пути']
+    column_count = len(column_names)
+
+    for j in range(len(column_names)):
+        label = Label(report_viewer_frame)
+        label.grid(row=0, column=j, sticky=NSEW)
+        label.config(text=column_names[j])
+        label.config(relief=GROOVE)  # SUNKEN FLAT RIDGE RAISED GROOVE SOLID
+        report_viewer_frame.columnconfigure(j, weight=1)
+
+    print(len(report_data))
+
+    for i in range(30):
+        for j in range(column_count):
+            entry = Entry(report_viewer_frame)
+            entry.grid(row=i + 1, column=j, sticky=NSEW)
+            entry.insert(END, report_data[i][j])
+            entry.config(justify=CENTER)
+            report_viewer_frame.columnconfigure(j, weight=1)
+        report_viewer_frame.rowconfigure(i, weight=1)
 
 
 def get_profit_on_period(report_name, root, account):
@@ -71,6 +160,7 @@ def count_costs_on_company_development(report_name, root, account):
 
 def year_profit_statistics(report_name, root, account):
     print('Report getting window 4')
+
 
 def run(root, account):
     """В MAIN_FRAME"""
@@ -91,9 +181,7 @@ def run(root, account):
     paned_window = PanedWindow(main_window.main_frame)
     paned_window.pack(fill=BOTH, expand=YES, side=LEFT)
     paned_window.config(orient=HORIZONTAL)
-    paned_window.config(sashrelief=GROOVE, sashwidth=10) # relief ::= FLAT, SUNKEN, RAISED, GROOVE, SOLID, RIDGE
-
-
+    paned_window.config(sashrelief=GROOVE, sashwidth=10)  # relief ::= FLAT, SUNKEN, RAISED, GROOVE, SOLID, RIDGE
 
     # b = Button(main_window.main_frame, text='ЗАГЛУШКА')
     # b.pack()
@@ -152,11 +240,12 @@ def run(root, account):
 
     # scrolled_report_list2 = ScrolledReportList(paned_window, reports, root)
     # paned_window.add(scrolled_report_list2)
-    global report_view_frame
-    report_view_frame = Frame(paned_window)
-    paned_window.add(report_view_frame)
+    global report_frame
+    report_frame = Frame(paned_window)
+    paned_window.add(report_frame)
+    # report_frame.config()
 
-    report_view_frame.config(bd=10, relief=SOLID)
+    report_frame.config(bd=10, relief=SOLID)
 
     # li = (str(x * x) for x in range(5))
 
@@ -176,10 +265,10 @@ def run(root, account):
               db_helper.count_costs_on_company_development((12, 3, 2015), (13, 3, 2015)))
         print('year_profit_statistics :', db_helper.year_profit_statistics())
 
-    # window.protocol('WM_DELETE_WINDOW', lambda: None)
-    # window.grab_set()
-    # window.focus_set()
-    # window.wait_window()
+        # window.protocol('WM_DELETE_WINDOW', lambda: None)
+        # window.grab_set()
+        # window.focus_set()
+        # window.wait_window()
 
 
 def run2(root, account):

@@ -1,0 +1,82 @@
+https://docs.python.org/3/library/tkinter.tix.html
+
+==========================================================
+BASIC WIDGETS
+==========================================================
+
+Balloon # pops up over a widget to provide help
+
+ButtonBox # creates a box of buttons
+
+ComboBox # the user can select a choice by either typing in the entry subwidget or selecting from the listbox subwidget
+
+Control # aka SpinBox [<] [Entry] [>]
+
+LabelEntry # Label + Entry
+
+LabelFrame # Label + Frame
+
+Meter #  can be used to show the progress of a background job which may take a long time to execute
+
+OptionMenu # creates a menu button of options
+
+PopupMenu # can be used as a replacement of the tk_popup command
+
+Select # container of button subwidgets; can be used to provide radio-box or check-box style of selection options for the user
+
+StdButtonBox # a group of standart buttons for Motif-like dialog boxes
+
+==========================================================
+FILE SELECTORS
+==========================================================
+
+DirList
+
+DirTree
+
+DirSelectDialog
+
+DirSelectBox
+
+ExFileSelectBox
+
+FileSelectBox
+
+FileEntry
+
+==========================================================
+HIERARCHICAL LISTBOX
+==========================================================
+
+HList # can be used to display any data that have a hierarchical structure, for example, file system directory trees.
+      # The list entries are indented and connected by branch lines according to their places in the hierarchy
+
+CheckList # displays a list of items to be selected by the user
+
+Tree # can be used to display hierarchical data in a tree form
+
+==========================================================
+TABULAR LISTBOX
+==========================================================
+
+TList # can be used to display data in a tabular format
+
+==========================================================
+MANAGER WIDGETS
+==========================================================
+
+PanedWindow # allows the user to interactively manipulate the sizes of several panes.
+            # The panes can be arranged either vertically or horizontally.
+            # The user changes the sizes of the panes by dragging the resize handle between two panes
+
+ListNoteBook # can be used to display many windows in a limited space using a notebook metaphor.
+             # The notebook is divided into a stack of pages (windows). At one time only one of these pages
+             # can be shown. The user can navigate through these pages by choosing the name of the
+             # desired page in the hlist subwidget.
+
+NoteBook # can be used to display many windows in a limited space using a notebook metaphor.
+         # The notebook is divided into a stack of pages. At one time only one of these pages can be shown.
+         # The user can navigate through these pages by choosing the visual “tabs” at the top of the NoteBook widget.
+
+
+

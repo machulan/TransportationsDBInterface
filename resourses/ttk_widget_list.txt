@@ -1,0 +1,19 @@
+https://docs.python.org/3/library/tkinter.ttk.html
+====================================================
+
+Combobox
+
+Notebook # tabbed windows
+
+Progressbar # shows the status of a long-running operation
+
+Separator # displays a horizontal or vertical separator bar
+
+Sizegrip # (also known as (a.k.a.) a grow box) allows the user to resize the containing
+         # toplevel window by pressing and dragging the grip
+
+Treeview # displays a hierarchical collection of items
+
+
+==============
+Style
