@@ -178,6 +178,62 @@ def select_all_from(table_name):
     conn.close()
     return result
 
+def update(table_name, old_data, new_data):
+    conn = pymssql.connect(**CONNECTION_DATA)
+    cursor = conn.cursor()
+
+    table_id = DATABASE_TABLE_NAMES.index(table_name)
+    column_names = DATABASE_TABLE_COLUMN_NAMES[table_id]
+    primary_keys = TABLES_PRIMARY_KEYS[table_id]
+    column_types = TABLE_COLUMN_TYPES[table_id]
+
+    set_expr_items = []
+    for pos, column_name in enumerate(column_names):
+        if column_types[pos] == "nvarchar":
+            set_expr_items.append(str(column_name) + "='" + str(new_data[pos]) + "'")
+        else:
+            set_expr_items.append(str(column_name) + "=" + str(new_data[pos]))
+    set_expr = ", ".join(set_expr_items)
+
+    where_expr_items = []
+    for primary_key in primary_keys:
+        pos = column_names.index(primary_key)
+        primary_key_value = old_data[pos]
+        primary_key_name = column_names[pos]
+        if column_types[pos] == "nvarchar":
+            where_expr_items.append(str(primary_key_name) + "='" + str(primary_key_value) + "'")
+        else:
+            where_expr_items.append(str(primary_key_name) + "=" + str(primary_key_value))
+    where_expr = " AND ".join(where_expr_items)
+
+    print("""
+            UPDATE """ + table_name + """
+            SET """ + set_expr + """
+            WHERE """ + where_expr + """
+        """)
+    return
+
+    cursor.execute("""
+            UPDATE """ + table_name + """
+            SET """ + set_expr + """
+            WHERE """ + where_expr + """
+        """)
+
+    result = cursor.fetchall()
+    conn.close()
+    return None
+
+def delete(table_name, deleted_data):
+    conn = pymssql.connect(**CONNECTION_DATA)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+            DELETE """ +  + """ WHERE
+        """)
+
+    result = cursor.fetchall()
+    conn.close()
+    return None
 
 # import pyodbc
 #
@@ -272,3 +328,5 @@ if __name__ == '__main__':
     # db = shelve.open('accounts')
     db['TestUser'] = test_user
     print(test_user, 'успешно добавлен в базу данных аккаунтов')
+
+

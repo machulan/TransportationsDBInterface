@@ -3,6 +3,8 @@ import tkinter.tix as tix
 import tkinter.ttk as ttk
 import tkinter.font as tkinterfont
 
+from tkinter.messagebox import showinfo, showerror, showwarning
+
 from resourses.constants import *
 from styles import *
 
@@ -140,32 +142,58 @@ class ScrolledTableList(Frame):
 
 def insert_data_into(table_id, root, account):
     print('Вставка данных в таблицу')
-    data = dialogs.ask_table_inserted_data(table_id, root, account)
-    print(data)
-    #db_helper.insert_into(table_name, data)
+    inserted_data = dialogs.ask_table_inserted_data(table_id, root, account)
+    print(inserted_data)
+    db_helper.insert_into(DATABASE_TABLE_NAMES[table_id], inserted_data)
+
 
 
 def delete_data_from(table_id, root, account):
-    print('Удаление данных из таблицы')
-    #data =
+    print('Удаление данных из таблицы' + INTERFACE_TABLE_NAMES[table_id].upper())
+    selected_item = table_grid_viewer.selected_item
+    if selected_item is None:
+        print('Для изменения ничего не выбрано')
+        showinfo('Справка', 'Выберите запись в таблице')
+        # showerror('Информация', 'Для изменения ничего не выбрано')
+        # showwarning('Информация', 'Для изменения ничего не выбрано')
+        return
+
+    deleted_data = selected_item['values']
+    new_data = dialogs.ask_table_inserted_data(table_id, root, account)
+    # primary_keys = TABLES_PRIMARY_KEYS[table_id]
+
+    db_helper.delete(DATABASE_TABLE_NAMES[table_id], deleted_data)
+
+    print(deleted_data, ' => ', 'Небытие')
+
+    showinfo('Справка', 'Данные успешно удалены!')
 
 
 def update_data_of(table_id, root, account):
-    print('Изменение данных в таблице')
-    item = table_grid_viewer.selected_item
-    if item is None:
+    print('Изменение данных в таблице ' + INTERFACE_TABLE_NAMES[table_id].upper())
+    selected_item = table_grid_viewer.selected_item
+    if selected_item is None:
         print('Для изменения ничего не выбрано')
+        showinfo('Справка', 'Выберите запись в таблице')
+        #showerror('Информация', 'Для изменения ничего не выбрано')
+        #showwarning('Информация', 'Для изменения ничего не выбрано')
         return
 
-    item_value = item['values']
+    old_data = selected_item['values']
+    new_data = dialogs.ask_table_inserted_data(table_id, root, account)
+    # primary_keys = TABLES_PRIMARY_KEYS[table_id]
 
-    print(item_value)
+    db_helper.update(DATABASE_TABLE_NAMES[table_id], old_data, new_data)
+
+    print(old_data, ' => ', new_data)
+
+    showinfo('Справка', 'Данные успешно изменены!')
 
 
 def make_table_toolbar(table_id, root, account):
     clear_table_toolbar()
 
-    #table_name = DATABASE_TABLE_NAMES[table_id]
+    # table_name = DATABASE_TABLE_NAMES[table_id]
     print('Grid viewer toolbar is filling...')
 
     global table_toolbar
@@ -198,7 +226,9 @@ def get_test_table(column_count, row_count):
         rows.append(tuple([i] * column_count))
     return tuple(headings), tuple(rows)
 
+
 after_id = None
+
 
 def cancel_table_progressbar_after():
     global after_id
@@ -206,11 +236,11 @@ def cancel_table_progressbar_after():
     print('cancel after')
     table_progressbar.stop()
 
+
 def open_table(table_id, root, account):
     table_progressbar.start(10)
     global after_id
     after_id = table_progressbar.after(1130, cancel_table_progressbar_after)
-
 
     table_name = INTERFACE_TABLE_NAMES[table_id].upper()
     print('Table [ ' + INTERFACE_TABLE_NAMES[table_id] + ' ] is opening...')
@@ -237,7 +267,7 @@ def open_table(table_id, root, account):
     table_grid_viewer = ScrolledGridViewer(table_frame, column_names, table_data)
     table_grid_viewer.pack(expand=YES, fill=BOTH)
 
-    #table_progressbar.stop()
+    # table_progressbar.stop()
     # treeview.insert('', 0, 'tables', text='Tables', tags=['tables tag'])
     # treeview.insert('tables', 0, 'table 1', text='first table', tags=['table tag', 'table 1 tag'])
     # treeview.insert('tables', 1, 'table 2', text='second table')
@@ -268,8 +298,9 @@ def make_view_toolbar(view_id, root, account):
     delete_button.config(command=(lambda: delete_data_from(view_name, root, account)))
 
     update_button = main_window.ToolbarButton(view_toolbar, text='Обновить...')
-    #update_button.pack(side=RIGHT, fill=Y)
+    # update_button.pack(side=RIGHT, fill=Y)
     update_button.config(command=(lambda: update_data_of(view_name, root, account)))
+
 
 def cancel_view_progressbar_after():
     global after_id
@@ -277,11 +308,12 @@ def cancel_view_progressbar_after():
     print('cancel after')
     view_progressbar.stop()
 
+
 def open_view(view_id, root, account):
-    #view_progressbar.start(20)
+    # view_progressbar.start(20)
     global after_id
-    #after_id = view_progressbar.after(10000, cancel_view_progressbar_after)
-    #view_progressbar.update()
+    # after_id = view_progressbar.after(10000, cancel_view_progressbar_after)
+    # view_progressbar.update()
 
     view_name = INTERFACE_VIEW_NAMES[view_id].upper()
     print('View [ ' + INTERFACE_VIEW_NAMES[view_id] + ' ] is opening...')
@@ -308,7 +340,7 @@ def open_view(view_id, root, account):
     view_grid_viewer = ScrolledGridViewer(view_frame, column_names, view_data)
     view_grid_viewer.pack(expand=YES, fill=BOTH)
 
-    #view_progressbar.stop()
+    # view_progressbar.stop()
 
 
 def clear_table_toolbar():
@@ -381,10 +413,10 @@ def run(entity_type, root, account):
     table_toolbar.config(padx=5, pady=3)
     table_toolbar.config(bg='#CCF')
 
-    #table_progressbar.start(20)
-    #table_progressbar.start(20)
+    # table_progressbar.start(20)
+    # table_progressbar.start(20)
 
-    #progressbar.step(50)
+    # progressbar.step(50)
 
     #    paned_window = PanedWindow(main_window.main_frame)
     paned_window = PanedWindow(table_tab_frame)

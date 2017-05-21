@@ -245,7 +245,10 @@ def ask_table_inserted_data(table_id, root, account):
 
     #date_entry = DateEntry(toolbar, HORIZONTAL)
     #date_entry.pack()
+    #result = []
 
+    widgets = []
+    vars = []
     column_names = INTERFACE_TABLE_COLUMN_NAMES[table_id]
     column_types = TABLE_COLUMN_TYPES[table_id]
     for i, column_name in enumerate(column_names):
@@ -254,16 +257,30 @@ def ask_table_inserted_data(table_id, root, account):
         label.grid(row=i, column=0, sticky=E, padx=20, pady=10)
         # label.pack(side=LEFT, expand=YES, fill=BOTH)
 
-        if column_types[i] in ENTRY_TABLE_COLUMN_TYPES_SET:
+        if column_types[i] == 'date':
+            date_entry = DateEntry(frame, HORIZONTAL)
+            date_entry.grid(row=i, column=1, sticky=NSEW, padx=20, pady=10)
+            var = None
+            widgets.append(date_entry)
+            vars.append(var)
+        elif column_types[i] in ENTRY_TABLE_COLUMN_TYPES_SET:
             entry = Entry(frame)
             entry.config(width=30, font=ASK_INSERTED_DATA_ENTRY_FONT)
             entry.config(show='', insertofftime=500, insertontime=500)
             # entry.pack(side=RIGHT, expand=YES, padx=10, pady=10)
             entry.grid(row=i, column=1, sticky=NSEW, padx=20, pady=10)
             entry.focus_set()
+            if column_types[i] == 'float':
+                var = DoubleVar()
+            elif column_types[i] == 'bigint' or column_types[i] == 'int':
+                var = IntVar()
+            elif column_types[i] == 'nvarchar':
+                var = StringVar()
+            entry.config(textvariable=var)
+            widgets.append(entry)
+            vars.append(var)
         else:
-            date_entry = DateEntry(frame, HORIZONTAL)
-            date_entry.grid(row=i, column=1, sticky=NSEW, padx=20, pady=10)
+            print('Unknown SQL type')
 
     def cancel():
         nonlocal cancel_button_pressed, window
@@ -277,7 +294,16 @@ def ask_table_inserted_data(table_id, root, account):
     cancel_button.pack(side=RIGHT, expand=NO, fill=X, padx=20, pady=10)
 
     def validate():
-        return False
+        for i, column_type in enumerate(column_types):
+            if column_type in ENTRY_TABLE_COLUMN_TYPES_SET:
+                entry_value = vars[i].get()
+                print(entry_value)
+            elif column_type == 'date':
+                # date
+                date = widgets[i].get_value()
+                if date == (None, None, None):
+                    return False
+        return True
         #date = date_entry.get_value()
         #return not (date is None)
 
@@ -294,4 +320,14 @@ def ask_table_inserted_data(table_id, root, account):
     window.grab_set()
     window.wait_window()
 
-    #return date_entry.get_value()
+    result = []
+    for i, var in enumerate(vars):
+        if column_types[i] == 'date':
+            result.append(widgets[i].get_value())
+        elif column_types[i] in ENTRY_TABLE_COLUMN_TYPES_SET:
+            result.append(var.get())
+        else:
+            result.append(None)
+            print('Unknown SQL type')
+
+    return tuple(result)
