@@ -348,7 +348,7 @@ def run(root, account):
     paned_window.add(report_frame)
     # report_frame.config()
 
-    report_frame.config(bd=10, relief=SOLID)
+    report_frame.config(bd=0, relief=SOLID)
 
     # li = (str(x * x) for x in range(5))
 

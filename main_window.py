@@ -16,6 +16,7 @@ import raw_query
 import custom_widgets
 
 toolbar = None
+grid_viewer_toolbar1 = None
 main_frame = None
 statusbar = None
 status_label = None
@@ -90,10 +91,11 @@ def make_toolbar(root, account):
 
     open_table_button = ToolbarButton(toolbar, text='Таблица...')
     open_table_button.pack(side=LEFT, fill=Y)
-    open_table_button.config(command=(lambda: db_viewer.run(root, account)))
+    open_table_button.config(command=(lambda: db_viewer.run(TABLES, root, account)))
 
     open_view_button = ToolbarButton(toolbar, text='Представление...')
     open_view_button.pack(side=LEFT, fill=Y)
+    open_view_button.config(command=(lambda: db_viewer.run(VIEWS, root, account, )))
 
     if account.is_admin():
         make_row_query_button = ToolbarButton(toolbar, text='SQL запрос к базе данных...')
@@ -134,10 +136,31 @@ def make_toolbar(root, account):
     search_button.config(activebackground='#CCF', bd=0)
 
 
+def clear_grid_viewer_toolbar1():
+    global grid_viewer_toolbar
+    if not (grid_viewer_toolbar is None):
+        grid_viewer_toolbar_copy = grid_viewer_toolbar.children.copy()
+        for key, widget in grid_viewer_toolbar_copy.items():
+            widget.destroy()
+        # grid_viewer_toolbar
+
+
+def make_grid_viewer_toolbar1(root, account):
+    global grid_viewer_toolbar
+    grid_viewer_toolbar = Frame(root)
+    grid_viewer_toolbar.pack(side=TOP, fill=X)
+    grid_viewer_toolbar.config(padx=5, pady=3)
+    grid_viewer_toolbar.config(bg='#CCF')  # FFA
+
+
 class StatusbarLabel(Label):
     def __init__(self, parent, **options):
         Label.__init__(self, parent, **options)
         self.config(font=STATUSBAR_LABEL_FONT)
+
+
+def clear_selected_item_label():
+    selected_item_label.config(text='')
 
 
 def make_statusbar(root, account):
@@ -162,6 +185,7 @@ def make_statusbar(root, account):
 
     # widget.bind("<Control-Shift-KeyPress-q>", callback)
 
+
 def clear_main_frame(root, account):
     root.title(ROOT_TITLE + ' [' + account.get_rights() + ']')
 
@@ -180,6 +204,7 @@ def clear_main_frame(root, account):
 
     # status_label['text'] = 'main_frame очищен'
     print('main_frame очищен')
+
 
 def make_main_frame(root):
     global main_frame
@@ -211,17 +236,21 @@ def run(root, account):
     make_menu(root, account)
     # make_toolbar(root, account)
 
+    #make_grid_viewer_toolbar(root, account)
+
     make_main_frame(root)
 
     make_toolbar(root, account)
 
     make_statusbar(root, account)
 
+
+
     # print()
     # print('MAIN_WINDOW [main_window.main_frame] ::', main_frame)
     # print('MAIN_WINDOW [main_window.status_label] ::', status_label)
 
-    #b = Button(root, text='Statusbar')
-    #b.pack()
-    #b.config(command=(lambda: print('MAIN_WINDOW [main_window.statusbar] ::', statusbar)
-                              #or print('MAIN_WINDOW [main_window.main_frame] ::', main_frame)))
+    # b = Button(root, text='Statusbar')
+    # b.pack()
+    # b.config(command=(lambda: print('MAIN_WINDOW [main_window.statusbar] ::', statusbar)
+    # or print('MAIN_WINDOW [main_window.main_frame] ::', main_frame)))

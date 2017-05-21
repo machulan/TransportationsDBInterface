@@ -9,9 +9,23 @@ from styles import *
 import db_helper
 import preferencies
 import main_window
+import dialogs
 
 table_frame = None
 view_frame = None
+
+table_grid_viewer = None
+view_grid_viewer = None
+
+table_toolbar = None
+view_toolbar = None
+
+table_progressbar = None
+view_progressbar = None
+
+displayed_table_name = None
+displayed_view_name = None
+displayed_notebook_tab = None
 
 
 def clear_frame(frame):
@@ -60,19 +74,30 @@ class ScrolledGridViewer(Frame):
         self.table = table
         self.table.bind("<<TreeviewSelect>>", lambda event: self.print_status())
 
+        self.table_size = (len(headings), len(rows))
+
         self.selected_item = None
+        main_window.clear_selected_item_label()
 
     def print_status(self):
         iid = self.table.focus()
         print('Selected item with id :', iid)
-        selected_item_label_text = 'Запись :' + str(int('0x' + iid[1:], 16))
+        selected_item_label_text = 'Запись ' + str(int('0x' + iid[1:], 16)) + ':' + str(self.table_size[1]) + ''
         main_window.selected_item_label.config(text=selected_item_label_text)
+
+        # print('SIZE :', self.table.size())
+        # print('ELEMENT :', self.table.identify_element(1, 1))
+        # print('REGION :', self.table.identify_region(1, 1))
+        # print('COLUMN :', self.table.identify_column(3))
+        # print('ELEMENTS')
+        # for i in range(10):
+        #    print('ELEMENT :', self.table.identify_element(i, 3))
 
         item = self.table.item(iid)
         print(item)
         self.selected_item = item
 
-    #def selected_item(self):
+        # def selected_item(self):
         # iid = self.table.focus()
         # item = self.table.item(iid)
         # print('Selected item id:', item)
@@ -113,6 +138,52 @@ class ScrolledTableList(Frame):
         self.listbox.bind('<Return>', self.handle_list)
 
 
+def insert_data_into(table_id, root, account):
+    print('Вставка данных в таблицу')
+    data = dialogs.ask_table_inserted_data(table_id, root, account)
+    print(data)
+    #db_helper.insert_into(table_name, data)
+
+
+def delete_data_from(table_id, root, account):
+    print('Удаление данных из таблицы')
+    #data =
+
+
+def update_data_of(table_id, root, account):
+    print('Изменение данных в таблице')
+    item = table_grid_viewer.selected_item
+    if item is None:
+        print('Для изменения ничего не выбрано')
+        return
+
+    item_value = item['values']
+
+    print(item_value)
+
+
+def make_table_toolbar(table_id, root, account):
+    clear_table_toolbar()
+
+    #table_name = DATABASE_TABLE_NAMES[table_id]
+    print('Grid viewer toolbar is filling...')
+
+    global table_toolbar
+
+    if account.is_admin():
+        insert_button = main_window.ToolbarButton(table_toolbar, text='Вставить...')
+        insert_button.pack(side=RIGHT, fill=Y)
+        insert_button.config(command=(lambda: insert_data_into(table_id, root, account)))
+
+    delete_button = main_window.ToolbarButton(table_toolbar, text='Удалить...')
+    delete_button.pack(side=RIGHT, fill=Y)
+    delete_button.config(command=(lambda: delete_data_from(table_id, root, account)))
+
+    update_button = main_window.ToolbarButton(table_toolbar, text='Изменить...')
+    update_button.pack(side=RIGHT, fill=Y)
+    update_button.config(command=(lambda: update_data_of(table_id, root, account)))
+
+
 def get_test_table(column_count, row_count):
     headings = []
     for i in range(column_count):
@@ -127,24 +198,46 @@ def get_test_table(column_count, row_count):
         rows.append(tuple([i] * column_count))
     return tuple(headings), tuple(rows)
 
+after_id = None
 
-def open_table(table_id):
+def cancel_table_progressbar_after():
+    global after_id
+    table_progressbar.after_cancel(after_id)
+    print('cancel after')
+    table_progressbar.stop()
+
+def open_table(table_id, root, account):
+    table_progressbar.start(10)
+    global after_id
+    after_id = table_progressbar.after(1130, cancel_table_progressbar_after)
+
+
+    table_name = INTERFACE_TABLE_NAMES[table_id].upper()
     print('Table [ ' + INTERFACE_TABLE_NAMES[table_id] + ' ] is opening...')
+
+    root.title('Таблица ' + table_name + ' [' + account.get_rights() + ']')
+    main_window.status_label['text'] = 'Таблица : ' + table_name
+    global displayed_table_name
+    displayed_table_name = main_window.status_label['text']
 
     global table_frame
     clear_table_frame()
     table_frame.config(bd=5)
 
+    make_table_toolbar(table_id, root, account)
+
     # temp_headings, temp_rows = get_test_table(7, 100)
 
+    column_names = INTERFACE_TABLE_COLUMN_NAMES[table_id]
     table_data = db_helper.select_all_from(DATABASE_TABLE_NAMES[table_id])
 
-    print(table_data)
-    column_names = tuple(['column ' + str(i) for i in range(len(table_data[0]))])
+    # print(table_data)
+    # column_names = tuple(['column ' + str(i) for i in range(len(table_data[0]))])
+    global table_grid_viewer
+    table_grid_viewer = ScrolledGridViewer(table_frame, column_names, table_data)
+    table_grid_viewer.pack(expand=YES, fill=BOTH)
 
-    grid_viewer = ScrolledGridViewer(table_frame, column_names, table_data)
-    grid_viewer.pack(expand=YES, fill=BOTH)
-
+    #table_progressbar.stop()
     # treeview.insert('', 0, 'tables', text='Tables', tags=['tables tag'])
     # treeview.insert('tables', 0, 'table 1', text='first table', tags=['table tag', 'table 1 tag'])
     # treeview.insert('tables', 1, 'table 2', text='second table')
@@ -157,15 +250,100 @@ def open_table(table_id):
     # treeview.tag_configure('tables tag', background='green')
 
 
-def open_view(view_id):
+def make_view_toolbar(view_id, root, account):
+    clear_view_toolbar()
+
+    view_name = DATABASE_VIEW_NAMES[view_id]
+    print('Grid viewer toolbar is filling...')
+
+    global view_toolbar
+
+    if account.is_admin():
+        insert_button = main_window.ToolbarButton(view_toolbar, text='Вставить...')
+        insert_button.pack(side=RIGHT, fill=Y)
+        insert_button.config(command=(lambda: insert_data_into(view_name, root, account)))
+
+    delete_button = main_window.ToolbarButton(view_toolbar, text='Удалить...')
+    delete_button.pack(side=RIGHT, fill=Y)
+    delete_button.config(command=(lambda: delete_data_from(view_name, root, account)))
+
+    update_button = main_window.ToolbarButton(view_toolbar, text='Обновить...')
+    #update_button.pack(side=RIGHT, fill=Y)
+    update_button.config(command=(lambda: update_data_of(view_name, root, account)))
+
+def cancel_view_progressbar_after():
+    global after_id
+    view_progressbar.after_cancel(after_id)
+    print('cancel after')
+    view_progressbar.stop()
+
+def open_view(view_id, root, account):
+    #view_progressbar.start(20)
+    global after_id
+    #after_id = view_progressbar.after(10000, cancel_view_progressbar_after)
+    #view_progressbar.update()
+
+    view_name = INTERFACE_VIEW_NAMES[view_id].upper()
     print('View [ ' + INTERFACE_VIEW_NAMES[view_id] + ' ] is opening...')
-    pass
+
+    root.title('Представление ' + view_name + ' [' + account.get_rights() + ']')
+    main_window.status_label['text'] = 'Представление : ' + view_name
+    global displayed_view_name
+    displayed_view_name = main_window.status_label['text']
+
+    global view_frame
+    clear_view_frame()
+    view_frame.config(bd=5)
+
+    make_view_toolbar(view_id, root, account)
+
+    # temp_headings, temp_rows = get_test_table(7, 100)
+
+    column_names = INTERFACE_VIEW_COLUMN_NAMES[view_id]
+    view_data = db_helper.select_all_from(DATABASE_VIEW_NAMES[view_id])
+
+    # print(table_data)
+    # column_names = tuple(['column ' + str(i) for i in range(len(table_data[0]))])
+    global view_grid_viewer
+    view_grid_viewer = ScrolledGridViewer(view_frame, column_names, view_data)
+    view_grid_viewer.pack(expand=YES, fill=BOTH)
+
+    #view_progressbar.stop()
 
 
-def run(root, account):
+def clear_table_toolbar():
+    global table_toolbar
+    if not (table_toolbar is None):
+        table_toolbar_copy = table_toolbar.children.copy()
+        for key, widget in table_toolbar_copy.items():
+            widget.destroy()
+            # grid_viewer_toolbar
+
+
+def clear_view_toolbar():
+    global view_toolbar
+    if not (view_toolbar is None):
+        view_toolbar_copy = view_toolbar.children.copy()
+        for key, widget in view_toolbar_copy.items():
+            widget.destroy()
+            # grid_viewer_toolbar
+
+
+# def make_grid_viewer_toolbar():
+#     global grid_viewer_toolbar
+#     grid_viewer_toolbar = Frame(main_window.main_frame)
+#     grid_viewer_toolbar.pack(side=TOP, fill=X)
+#     grid_viewer_toolbar.config(padx=5, pady=3)
+#     grid_viewer_toolbar.config(bg='#CCF')  # FFA
+
+
+def run(entity_type, root, account):
     main_window.clear_main_frame(root, account)
 
-    root.title(TABLE_LIST_WINDOW_TITLE + ' [' + account.get_rights() + ']')
+    if entity_type == TABLES:
+        root.title(TABLE_LIST_WINDOW_TITLE + ' [' + account.get_rights() + ']')
+    else:
+        root.title(VIEW_LIST_WINDOW_TITLE + ' [' + account.get_rights() + ']')
     main_window.status_label['text'] = 'Просмотр таблиц и представлений'
 
     print('DB_VIEWER [main_window.status_label] ::', main_window.status_label)
@@ -186,12 +364,34 @@ def run(root, account):
     # TABLES
     ###########################################################
 
+    table_tab_frame = Frame(notebook)
+    table_tab_frame.pack(fill=BOTH, expand=YES, side=LEFT)
+
+    notebook.add(table_tab_frame)
+    notebook.tab(0, text=TABLE_LIST_WINDOW_TITLE)
+
+    global table_progressbar
+    table_progressbar = ttk.Progressbar(table_tab_frame)
+    table_progressbar.pack(side=BOTTOM, expand=NO, fill=X)
+    table_progressbar.config(mode='determinate')
+
+    global table_toolbar
+    table_toolbar = Frame(table_tab_frame)
+    table_toolbar.pack(side=BOTTOM, expand=NO, fill=X)
+    table_toolbar.config(padx=5, pady=3)
+    table_toolbar.config(bg='#CCF')
+
+    #table_progressbar.start(20)
+    #table_progressbar.start(20)
+
+    #progressbar.step(50)
+
     #    paned_window = PanedWindow(main_window.main_frame)
-    paned_window = PanedWindow(notebook)
+    paned_window = PanedWindow(table_tab_frame)
     paned_window.pack(fill=BOTH, expand=YES, side=LEFT)
 
-    notebook.add(paned_window)
-    notebook.tab(0, text=TABLE_LIST_WINDOW_TITLE)
+    # notebook.add(paned_window)
+    # notebook.tab(0, text=TABLE_LIST_WINDOW_TITLE)
 
     paned_window.config(orient=HORIZONTAL)
     paned_window.config(sashrelief=GROOVE, sashwidth=10)  # relief ::
@@ -213,7 +413,7 @@ def run(root, account):
 
     table_functions = []
     for table_id in range(len(DATABASE_TABLE_NAMES)):
-        table_functions.append(lambda table_id=table_id: open_table(table_id))
+        table_functions.append(lambda table_id=table_id: open_table(table_id, root, account))
 
     tables = [(table_name, table_function) for table_name, table_function in
               zip(INTERFACE_TABLE_NAMES, table_functions)]
@@ -247,23 +447,45 @@ def run(root, account):
     # VIEWS
     ###########################################################
 
-    view_paned_window = PanedWindow(notebook)
+    view_tab_frame = Frame(notebook)
+    view_tab_frame.pack(fill=BOTH, expand=YES, side=LEFT)
+
+    notebook.add(view_tab_frame)
+    notebook.tab(1, text=VIEW_LIST_WINDOW_TITLE)
+
+    global view_toolbar
+    view_toolbar = Frame(view_tab_frame)
+    view_toolbar.pack(side=BOTTOM, expand=NO, fill=X)
+    view_toolbar.config(padx=5, pady=3)
+    view_toolbar.config(bg='#CCF')
+    # view_grid_viewer_toolbar
+
+    global view_progressbar
+    view_progressbar = ttk.Progressbar(view_tab_frame)
+    view_progressbar.pack(side=BOTTOM, expand=NO, fill=X)
+    view_progressbar.config(mode='determinate')
+
+    view_paned_window = PanedWindow(view_tab_frame)
     view_paned_window.pack(fill=BOTH, expand=YES, side=LEFT)
 
-    notebook.add(view_paned_window)
-    notebook.tab(1, text=VIEW_LIST_WINDOW_TITLE)
+    # notebook.add(view_paned_window)
+    # notebook.tab(1, text=VIEW_LIST_WINDOW_TITLE)
     # notebook.config(font=VIEW_LIST_WINDOW_TITLE)
-    notebook.select(1)
+
 
     view_paned_window.config(orient=HORIZONTAL)
     view_paned_window.config(sashrelief=GROOVE, sashwidth=10)  # relief ::
 
-    view_functions = [
-        lambda: do_nothing(),
-        lambda: do_nothing(),
-        lambda: do_nothing(),
-        lambda: do_nothing()
-    ]
+    # view_functions = [
+    #     lambda: do_nothing(),
+    #     lambda: do_nothing(),
+    #     lambda: do_nothing(),
+    #     lambda: do_nothing()
+    # ]
+
+    view_functions = []
+    for view_id in range(len(DATABASE_VIEW_NAMES)):
+        view_functions.append(lambda view_id=view_id: open_view(view_id, root, account))
 
     views = [(view_name, view_function) for view_name, view_function in
              zip(INTERFACE_VIEW_NAMES, view_functions)]
@@ -272,7 +494,7 @@ def run(root, account):
     # scrolled_report_list.pack(side=LEFT, expand=NO, fill=Y)
     view_paned_window.add(scrolled_view_list)
 
-    scrolled_view_list.listbox.config(width=15)
+    scrolled_view_list.listbox.config(width=20)
     scrolled_view_list.listbox.config(font=VIEW_NAME_FONT)
     scrolled_view_list.listbox.config(selectmode=BROWSE, activestyle=DOTBOX)  # setgrid=10) '#5F5' - light green
     scrolled_view_list.listbox.config(selectbackground='#5F5', selectforeground='black')
@@ -293,6 +515,37 @@ def run(root, account):
     # report_frame.config()
 
     view_frame.config(bd=10, relief=SOLID)
+
+    global displayed_notebook_tab
+    if entity_type == TABLES:
+        notebook.select(0)
+        displayed_notebook_tab = 1
+    else:
+        notebook.select(1)
+        displayed_notebook_tab = 0
+
+    print('displayed_notebook_tab : ', displayed_notebook_tab)
+
+    def refresh_statusbar():
+        # clear_grid_viewer_toolbar()
+
+        global displayed_notebook_tab, displayed_table_name, displayed_view_name
+        displayed_notebook_tab = 1 - displayed_notebook_tab
+        print('displayed_notebook_tab : ', displayed_notebook_tab)
+        print('displayed_table_name : ', displayed_table_name)
+        print('displayed_view_name : ', displayed_view_name)
+        if displayed_notebook_tab == 0:
+            # tables
+            main_window.status_label['text'] = displayed_table_name
+        else:
+            # views
+            main_window.status_label['text'] = displayed_view_name
+        main_window.selected_item_label['text'] = ''
+
+    notebook.bind('<<NotebookTabChanged>>', lambda event: refresh_statusbar())
+
+    ###########################################################################
+
 
     show_treeview = False
     if show_treeview:
