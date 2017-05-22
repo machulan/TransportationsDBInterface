@@ -54,6 +54,54 @@ DATABASE_TABLE_COLUMN_NAMES = [['car_id', 'car_model', 'color', 'car_type', 'wei
                                ['trip_id', 'driver_id', 'car_id', 'start_time', 'end_time', 'distance']
                                ]
 
+USER_DATABASE_TABLE_COLUMN_NAMES = [['car_model', 'color', 'car_type', 'weight', 'transportation_coefficient',
+                                     'travel_costs_per_kilometre', 'total_run'],
+                                    ['city_name'],
+                                    ['first_name', 'last_name', 'age', 'gender'],
+                                    ['country_name'],
+                                    ['passport_number', 'first_name', 'last_name', 'insurance_number',
+                                     'experience',
+                                     'driver_licence_number', 'driver_licence_category'],
+                                    ['duty_value'],
+                                    ['name', 'decription', 'transportation_cost_per_unit_weight', 'type'],
+                                    ['weight', 'amount'],
+                                    ['order_status', 'profit'],
+                                    [],
+                                    ['region_name'],
+                                    ['start_time', 'end_time', 'distance']]
+
+USER_TABLE_COLUMN_TYPES = [['nvarchar', 'nvarchar', 'nvarchar', 'float', 'float', 'float', 'float'],
+                      ['nvarchar'],
+                      ['bigint', 'nvarchar', 'nvarchar', 'bigint', 'nvarchar'],
+                      ['nvarchar'],
+                      ['bigint', 'nvarchar', 'nvarchar', 'bigint', 'bigint', 'bigint', 'nvarchar'],
+                      ['float'],
+                      ['nvarchar', 'nvarchar', 'float', 'nvarchar'],
+                      ['float', 'bigint'],
+                      ['nvarchar', 'float'],
+                      ['bigint', 'bigint'],
+                      ['nvarchar'],
+                      ['date', 'date', 'float']]
+
+USER_INTERFACE_TABLE_COLUMN_NAMES = [['Модель', 'Цвет', 'Тип', 'Вес', 'Коэффициент передвижения',
+                                      'Расходы на километр', 'Пробег'],
+                                     ['Название'],
+                                     ['Имя', 'Фамилия', 'Возраст', 'Пол'],
+                                     ['Название'],
+                                     ['Серия и номер паспорта', 'Имя', 'Фамилия', 'Номер страховки',
+                                      'Опыт',
+                                      'Номер водительского удостоверения',
+                                      'Категории (подкатегории) водительского удостоверения'],
+                                     ['Размер таможенной пошлины'],
+                                     ['Название', 'Описание',
+                                      'Расходы на перевозку единицы веса товара',
+                                      'Тип'],
+                                     ['Вес', 'Количество'],
+                                     ['Статус', 'Прибыль'],
+                                     [],
+                                     ['Название'],
+                                     ['Время отправления', 'Время прибытия', 'Дистанция']]
+
 ENTRY_TABLE_COLUMN_TYPES_SET = ['bigint', 'nvarchar', 'float']
 
 TABLE_COLUMN_TYPES = [['bigint', 'nvarchar', 'nvarchar', 'nvarchar', 'float', 'float', 'float', 'float'],
@@ -97,8 +145,8 @@ INTERFACE_TABLE_COLUMN_NAMES = [['Идентификатор', 'Модель', '
                                 ['Идентификатор города пункта назначения', 'Идентификатор города пункта отправления',
                                  'Идентификатор заказа', 'Статус', 'Прибыль', 'Идентификатор клиента'],
                                 ['Идентификатор рейса', 'Идентификатор заказа'],
-                                ['Идентификатор страны', 'Идентификатор региона', 'Название'],
-                                ['Идентификатор рейса', 'Идентификатор водителя', 'Идентификатор машины',
+                                ['Идентификатор страны', 'Идентификатор', 'Название'],
+                                ['Идентификатор', 'Идентификатор водителя', 'Идентификатор машины',
                                  'Время отправления',
                                  'Время прибытия', 'Дистанция']
                                 ]
@@ -107,6 +155,11 @@ DATABASE_VIEW_COLUMN_NAMES = [['city_id', 'city_name', 'region_id', 'country_id'
                               ['car_model', 'car_type', 'weight'],
                               ['city_name', 'country_id', 'region_id'],
                               ['city_name', 'country_name']]
+
+VIEW_COLUMN_TYPES = [['bigint', 'nvarchar', 'bigint', 'bigint'],
+                     ['nvarchar', 'nvarchar', 'float'],
+                     ['nvarchar', 'bigint', 'bigint'],
+                     ['nvarchar', 'nvarchar']]
 
 INTERFACE_VIEW_COLUMN_NAMES = [
     ['Идентификатор города', 'Название города', 'Идентификатор региона', 'Идентификатор страны'],

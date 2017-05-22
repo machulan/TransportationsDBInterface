@@ -74,7 +74,13 @@ class ToolbarButton(Button):
     def __init__(self, parent, **options):
         Button.__init__(self, parent, **options)
         self.config(font=TOOLBAR_BUTTON_FONT)
-        self.config(fg='black', bg='#FFF')  # FFA
+        #self.config(fg='black', bg='#FFF')  # FFA
+        self.config(fg='black', bg='#BBF')
+        #self.config(fg='black', bg='#CCC')
+        #self.bind('<>', )
+        self.config(activebackground='#DDF')
+        #self.bind('<Tab>', self.config(bg='yellow'))
+        #self.bind('<Escape>', self.config(bg='#BBF'))
 
 
 def make_toolbar(root, account):
@@ -86,7 +92,7 @@ def make_toolbar(root, account):
     toolbar.config(bg='#CCF')  # FFA
 
     clear_main_frame_button = ToolbarButton(toolbar, text='Очистить main_frame')
-    clear_main_frame_button.pack(side=LEFT, fill=Y)
+    #clear_main_frame_button.pack(side=LEFT, fill=Y)
     clear_main_frame_button.config(command=(lambda: clear_main_frame(root, account)))
 
     open_table_button = ToolbarButton(toolbar, text='Таблица...')
@@ -172,11 +178,11 @@ def make_statusbar(root, account):
     statusbar.pack(side=BOTTOM, fill=X)
 
     status_label = StatusbarLabel(statusbar)
-    status_label.config(text='Ничего не открыто')
+    status_label.config(text='')
     status_label.pack(side=LEFT)
 
     selected_item_label = StatusbarLabel(statusbar)
-    selected_item_label.config(text='Ничего не выбрано')
+    selected_item_label.config(text='')
     selected_item_label.pack(side=LEFT, padx=50)
 
     account_label = StatusbarLabel(statusbar)

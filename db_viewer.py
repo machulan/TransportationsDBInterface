@@ -48,13 +48,49 @@ def clear_view_frame():
         widget.destroy()
 
 
+# constraint = get_table_constraint(table_id, account)
+def get_table_constraint(table_id, account):
+    admin_column_names = DATABASE_TABLE_COLUMN_NAMES[table_id]
+    if account.is_admin():
+        return tuple([True] * len(admin_column_names))
+
+    # user
+    result = []
+    user_column_names = USER_DATABASE_TABLE_COLUMN_NAMES[table_id]
+    user_column_id, admin_column_id = 0, 0
+    while user_column_id < len(user_column_names) and admin_column_id < len(admin_column_names):
+        while user_column_names[user_column_id] != admin_column_names[admin_column_id]:
+            admin_column_id += 1
+            result.append(False)
+        result.append(True)
+        user_column_id += 1
+        admin_column_id += 1
+
+    while admin_column_id < len(admin_column_names):
+        admin_column_id += 1
+        result.append(False)
+
+    print(table_id, result)
+    return tuple(result)
+
+
 class ScrolledGridViewer(Frame):
-    def __init__(self, master=None, headings=tuple(), rows=tuple()):
+    def __init__(self, master=None, headings=tuple(), rows=tuple(), constraint=None):
         Frame.__init__(self, master)
+
+        if constraint is None or len(constraint) < len(headings):
+            constraint = tuple([True] * len(headings))
 
         table = ttk.Treeview(self)
         table.config(show="headings", selectmode=BROWSE)
-        table.config(columns=headings, displaycolumns=headings)
+        # table.config(columns=headings, displaycolumns=headings)
+        table.config(columns=headings)
+        displaycolumns_list = []
+        for i, item in enumerate(constraint):
+            if item:
+                displaycolumns_list.append(i)
+        # displaycolumns_list = [1,3]
+        table.config(displaycolumns=displaycolumns_list)
 
         for heading in headings:
             table.heading(heading, text=heading, anchor=CENTER)
@@ -78,10 +114,13 @@ class ScrolledGridViewer(Frame):
 
         self.table_size = (len(headings), len(rows))
 
+        self.constraint = constraint
+
         self.selected_item = None
         main_window.clear_selected_item_label()
 
     def print_status(self):
+        print('Constraint :', self.constraint)
         iid = self.table.focus()
         print('Selected item with id :', iid)
         selected_item_label_text = 'Запись ' + str(int('0x' + iid[1:], 16)) + ':' + str(self.table_size[1]) + ''
@@ -140,16 +179,46 @@ class ScrolledTableList(Frame):
         self.listbox.bind('<Return>', self.handle_list)
 
 
-def insert_data_into(table_id, root, account):
+def show_child_records(table_id, root, account):
+    print('Просмотр дочерних записей для таблицы ' + INTERFACE_TABLE_NAMES[table_id].upper())
+    selected_item = table_grid_viewer.selected_item
+    if selected_item is None:
+        print('Для изменения ничего не выбрано')
+        showinfo('Справка', 'Выберите запись в таблице')
+        # showerror('Информация', 'Для изменения ничего не выбрано')
+        # showwarning('Информация', 'Для изменения ничего не выбрано')
+        return
+
+    selected_record = selected_item['values']
+    print(selected_record)
+
+
+def insert_into_table(table_id, root, account):
     print('Вставка данных в таблицу')
     inserted_data = dialogs.ask_table_inserted_data(table_id, root, account)
+    if inserted_data is None:
+        print('Cancel button pressed')
+        return
     print(inserted_data)
-    db_helper.insert_into(DATABASE_TABLE_NAMES[table_id], inserted_data)
+    db_helper.insert_into_table(DATABASE_TABLE_NAMES[table_id], inserted_data)
 
+    showinfo('Справка', 'Данные успешно добавлены в таблицу!')
+
+
+def insert_into_view(view_id, root, account):
+    print('Ввод данных через представление')
+    inserted_data = dialogs.ask_view_inserted_data(view_id, root, account)
+    if inserted_data is None:
+        print('Cancel button pressed')
+        return
+    print(inserted_data)
+    db_helper.insert_into_view(DATABASE_VIEW_NAMES[view_id], inserted_data)
+
+    showinfo('Справка', 'Данные успешно добавлены через представление!')
 
 
 def delete_data_from(table_id, root, account):
-    print('Удаление данных из таблицы' + INTERFACE_TABLE_NAMES[table_id].upper())
+    print('Удаление данных из таблицы ' + INTERFACE_TABLE_NAMES[table_id].upper())
     selected_item = table_grid_viewer.selected_item
     if selected_item is None:
         print('Для изменения ничего не выбрано')
@@ -159,12 +228,14 @@ def delete_data_from(table_id, root, account):
         return
 
     deleted_data = selected_item['values']
-    new_data = dialogs.ask_table_inserted_data(table_id, root, account)
+    # new_data = dialogs.ask_table_inserted_data(table_id, root, account)
     # primary_keys = TABLES_PRIMARY_KEYS[table_id]
 
     db_helper.delete(DATABASE_TABLE_NAMES[table_id], deleted_data)
 
     print(deleted_data, ' => ', 'Небытие')
+
+    # open_table(table_id, root, account)
 
     showinfo('Справка', 'Данные успешно удалены!')
 
@@ -175,13 +246,19 @@ def update_data_of(table_id, root, account):
     if selected_item is None:
         print('Для изменения ничего не выбрано')
         showinfo('Справка', 'Выберите запись в таблице')
-        #showerror('Информация', 'Для изменения ничего не выбрано')
-        #showwarning('Информация', 'Для изменения ничего не выбрано')
+        # showerror('Информация', 'Для изменения ничего не выбрано')
+        # showwarning('Информация', 'Для изменения ничего не выбрано')
         return
 
     old_data = selected_item['values']
     new_data = dialogs.ask_table_inserted_data(table_id, root, account)
     # primary_keys = TABLES_PRIMARY_KEYS[table_id]
+
+    new_data = list(new_data)
+    for i, old_item in enumerate(old_data):
+        if new_data[i] is None:
+            new_data[i] = old_item
+    new_data = tuple(new_data)
 
     db_helper.update(DATABASE_TABLE_NAMES[table_id], old_data, new_data)
 
@@ -198,14 +275,18 @@ def make_table_toolbar(table_id, root, account):
 
     global table_toolbar
 
+    show_child_records_button = main_window.ToolbarButton(table_toolbar, text='Дочерние записи...')
+    show_child_records_button.pack(side=RIGHT, fill=Y)
+    show_child_records_button.config(command=(lambda: show_child_records(table_id, root, account)))
+
     if account.is_admin():
         insert_button = main_window.ToolbarButton(table_toolbar, text='Вставить...')
         insert_button.pack(side=RIGHT, fill=Y)
-        insert_button.config(command=(lambda: insert_data_into(table_id, root, account)))
+        insert_button.config(command=(lambda: insert_into_table(table_id, root, account)))
 
-    delete_button = main_window.ToolbarButton(table_toolbar, text='Удалить...')
-    delete_button.pack(side=RIGHT, fill=Y)
-    delete_button.config(command=(lambda: delete_data_from(table_id, root, account)))
+        delete_button = main_window.ToolbarButton(table_toolbar, text='Удалить...')
+        delete_button.pack(side=RIGHT, fill=Y)
+        delete_button.config(command=(lambda: delete_data_from(table_id, root, account)))
 
     update_button = main_window.ToolbarButton(table_toolbar, text='Изменить...')
     update_button.pack(side=RIGHT, fill=Y)
@@ -252,7 +333,7 @@ def open_table(table_id, root, account):
 
     global table_frame
     clear_table_frame()
-    table_frame.config(bd=5)
+    # table_frame.config(bd=5)
 
     make_table_toolbar(table_id, root, account)
 
@@ -263,8 +344,10 @@ def open_table(table_id, root, account):
 
     # print(table_data)
     # column_names = tuple(['column ' + str(i) for i in range(len(table_data[0]))])
+    constraint = get_table_constraint(table_id, account)
+
     global table_grid_viewer
-    table_grid_viewer = ScrolledGridViewer(table_frame, column_names, table_data)
+    table_grid_viewer = ScrolledGridViewer(table_frame, column_names, table_data, constraint)
     table_grid_viewer.pack(expand=YES, fill=BOTH)
 
     # table_progressbar.stop()
@@ -288,18 +371,18 @@ def make_view_toolbar(view_id, root, account):
 
     global view_toolbar
 
+    insert_button = main_window.ToolbarButton(view_toolbar, text='Вставить...')
+    insert_button.pack(side=RIGHT, fill=Y)
+    insert_button.config(command=(lambda: insert_into_view(view_id, root, account)))
+
     if account.is_admin():
-        insert_button = main_window.ToolbarButton(view_toolbar, text='Вставить...')
-        insert_button.pack(side=RIGHT, fill=Y)
-        insert_button.config(command=(lambda: insert_data_into(view_name, root, account)))
+        delete_button = main_window.ToolbarButton(view_toolbar, text='Удалить...')
+        # delete_button.pack(side=RIGHT, fill=Y)
+        delete_button.config(command=(lambda: delete_data_from(view_name, root, account)))
 
-    delete_button = main_window.ToolbarButton(view_toolbar, text='Удалить...')
-    delete_button.pack(side=RIGHT, fill=Y)
-    delete_button.config(command=(lambda: delete_data_from(view_name, root, account)))
-
-    update_button = main_window.ToolbarButton(view_toolbar, text='Обновить...')
-    # update_button.pack(side=RIGHT, fill=Y)
-    update_button.config(command=(lambda: update_data_of(view_name, root, account)))
+        update_button = main_window.ToolbarButton(view_toolbar, text='Обновить...')
+        # update_button.pack(side=RIGHT, fill=Y)
+        update_button.config(command=(lambda: update_data_of(view_name, root, account)))
 
 
 def cancel_view_progressbar_after():
@@ -310,9 +393,9 @@ def cancel_view_progressbar_after():
 
 
 def open_view(view_id, root, account):
-    # view_progressbar.start(20)
+    view_progressbar.start(10)
     global after_id
-    # after_id = view_progressbar.after(10000, cancel_view_progressbar_after)
+    after_id = view_progressbar.after(1100, cancel_view_progressbar_after)
     # view_progressbar.update()
 
     view_name = INTERFACE_VIEW_NAMES[view_id].upper()
@@ -325,7 +408,7 @@ def open_view(view_id, root, account):
 
     global view_frame
     clear_view_frame()
-    view_frame.config(bd=5)
+    # view_frame.config(bd=5)
 
     make_view_toolbar(view_id, root, account)
 
@@ -473,7 +556,7 @@ def run(entity_type, root, account):
     paned_window.add(table_frame)
     # report_frame.config()
 
-    table_frame.config(bd=10, relief=SOLID)
+    # table_frame.config(bd=1, relief=SOLID)
 
     ###########################################################
     # VIEWS
@@ -526,7 +609,7 @@ def run(entity_type, root, account):
     # scrolled_report_list.pack(side=LEFT, expand=NO, fill=Y)
     view_paned_window.add(scrolled_view_list)
 
-    scrolled_view_list.listbox.config(width=20)
+    scrolled_view_list.listbox.config(width=26)
     scrolled_view_list.listbox.config(font=VIEW_NAME_FONT)
     scrolled_view_list.listbox.config(selectmode=BROWSE, activestyle=DOTBOX)  # setgrid=10) '#5F5' - light green
     scrolled_view_list.listbox.config(selectbackground='#5F5', selectforeground='black')
@@ -546,7 +629,7 @@ def run(entity_type, root, account):
     view_paned_window.add(view_frame)
     # report_frame.config()
 
-    view_frame.config(bd=10, relief=SOLID)
+    # view_frame.config(bd=10, relief=SOLID)
 
     global displayed_notebook_tab
     if entity_type == TABLES:

@@ -126,7 +126,9 @@ def ask_table_row(table_id, root, account):
     column_names = INTERFACE_TABLE_COLUMN_NAMES[table_id]
     table_data = db_helper.select_all_from(DATABASE_TABLE_NAMES[table_id])
 
-    grid_viewer = db_viewer.ScrolledGridViewer(window, column_names, table_data)
+    constraint = db_viewer.get_table_constraint(table_id, account)
+
+    grid_viewer = db_viewer.ScrolledGridViewer(window, column_names, table_data, constraint)
     grid_viewer.pack(expand=YES, fill=BOTH)
 
     table_name_label = Label(toolbar)
@@ -182,7 +184,7 @@ class DateEntry(Frame):
         day_control.config(min=1, max=31, value=1, variable=self.day)
         month_control.config(min=1, max=12, value=1, variable=self.month)
         year_control.config(min=1999, max=2100, value=2010, variable=self.year)
-        #day_control.config(insertofftime=500, insertontime=500)
+        # day_control.config(insertofftime=500, insertontime=500)
 
         if orient == VERTICAL:
             day_label.grid(row=1, column=0, sticky=NSEW, padx=5, pady=5)
@@ -243,14 +245,134 @@ def ask_table_inserted_data(table_id, root, account):
     frame = Frame(window)
     frame.pack(side=TOP, expand=YES, fill=BOTH)
 
-    #date_entry = DateEntry(toolbar, HORIZONTAL)
-    #date_entry.pack()
-    #result = []
+    # date_entry = DateEntry(toolbar, HORIZONTAL)
+    # date_entry.pack()
+    # result = []
 
     widgets = []
     vars = []
     column_names = INTERFACE_TABLE_COLUMN_NAMES[table_id]
     column_types = TABLE_COLUMN_TYPES[table_id]
+
+    constraint = db_viewer.get_table_constraint(table_id, account)
+
+    for i, column_name in enumerate(column_names):
+        label = Label(frame)
+        label.config(text=column_name, font=ASK_INSERTED_DATA_LABEL_FONT)
+        if constraint[i]:
+            label.grid(row=i, column=0, sticky=E, padx=20, pady=10)
+        # label.pack(side=LEFT, expand=YES, fill=BOTH)
+
+        if column_types[i] == 'date':
+            date_entry = DateEntry(frame, HORIZONTAL)
+            date_entry.grid(row=i, column=1, sticky=NSEW, padx=20, pady=10)
+            var = None
+            widgets.append(date_entry)
+            vars.append(var)
+        elif column_types[i] in ENTRY_TABLE_COLUMN_TYPES_SET:
+            entry = Entry(frame)
+            entry.config(width=30, font=ASK_INSERTED_DATA_ENTRY_FONT)
+            entry.config(show='', insertofftime=500, insertontime=500)
+            # entry.pack(side=RIGHT, expand=YES, padx=10, pady=10)
+            if constraint[i]:
+                entry.grid(row=i, column=1, sticky=NSEW, padx=20, pady=10)
+            entry.focus_set()
+            if column_types[i] == 'float':
+                var = DoubleVar()
+            elif column_types[i] == 'bigint' or column_types[i] == 'int':
+                var = IntVar()
+            elif column_types[i] == 'nvarchar':
+                var = StringVar()
+            entry.config(textvariable=var)
+            widgets.append(entry)
+            vars.append(var)
+        else:
+            print('Unknown SQL type')
+
+    def cancel():
+        nonlocal cancel_button_pressed, window
+        cancel_button_pressed = True
+        window.destroy()
+
+    cancel_button = main_window.ToolbarButton(toolbar, text='Отмена')
+    cancel_button.config(width=20)
+    cancel_button.config(font=TOOLBAR_BUTTON_FONT, bg='#F55', fg='#000')
+    cancel_button.config(command=cancel)
+    cancel_button.pack(side=RIGHT, expand=NO, fill=X, padx=20, pady=10)
+
+    def validate():
+        for i, column_type in enumerate(column_types):
+            if column_type in ENTRY_TABLE_COLUMN_TYPES_SET:
+                if constraint[i]:
+                    entry_value = vars[i].get()
+                    print(entry_value)
+            elif column_type == 'date':
+                # date
+                date = widgets[i].get_value()
+                if date == (None, None, None):
+                    return False
+        return True
+        # date = date_entry.get_value()
+        # return not (date is None)
+
+    confirm_button = main_window.ToolbarButton(toolbar, text='ОК')
+    confirm_button.config(width=20)
+    confirm_button.config(font=TOOLBAR_BUTTON_FONT, bg='#0F0', fg='#000')
+    confirm_button.config(command=(lambda: validate() and window.destroy()))
+    confirm_button.pack(side=RIGHT, expand=NO, fill=Y, padx=20, pady=10)
+
+    cancel_button_pressed = False
+
+    window.protocol('WM_DELETE_WINDOW', lambda: cancel())
+    window.focus_set()
+    window.grab_set()
+    window.wait_window()
+
+    if cancel_button_pressed:
+        return None
+
+    result = []
+    for i, var in enumerate(vars):
+        if column_types[i] == 'date':
+            result.append(widgets[i].get_value())
+        elif column_types[i] in ENTRY_TABLE_COLUMN_TYPES_SET:
+            if constraint[i]:
+                result.append(var.get())
+            else:
+                result.append(None)
+        else:
+            result.append(None)
+            print('Unknown SQL type')
+
+    return tuple(result)
+
+
+def ask_view_inserted_data(view_id, root, account):
+    view_name = INTERFACE_VIEW_NAMES[view_id].upper()
+
+    window = Toplevel()
+    window.title('Вставка записи в представление ' + view_name + ' [' + account.get_rights() + ']')
+    window.resizable(width=False, height=False)
+    # window.state('zoomed')
+
+    toolbar = Frame(window)
+    toolbar.pack(side=BOTTOM, expand=NO, fill=X)
+
+    view_name_label = Label(window)
+    view_name_label.config(text='Заполните поля', font=TOOLBAR_BUTTON_FONT)
+    view_name_label.pack(side=TOP, expand=NO, fill=Y)
+
+    frame = Frame(window)
+    frame.pack(side=TOP, expand=YES, fill=BOTH)
+
+    # date_entry = DateEntry(toolbar, HORIZONTAL)
+    # date_entry.pack()
+    # result = []
+
+    widgets = []
+    vars = []
+    column_names = INTERFACE_VIEW_COLUMN_NAMES[view_id]
+    column_types = VIEW_COLUMN_TYPES[view_id]
     for i, column_name in enumerate(column_names):
         label = Label(frame)
         label.config(text=column_name, font=ASK_INSERTED_DATA_LABEL_FONT)
@@ -304,8 +426,8 @@ def ask_table_inserted_data(table_id, root, account):
                 if date == (None, None, None):
                     return False
         return True
-        #date = date_entry.get_value()
-        #return not (date is None)
+        # date = date_entry.get_value()
+        # return not (date is None)
 
     confirm_button = main_window.ToolbarButton(toolbar, text='ОК')
     confirm_button.config(width=20)
@@ -319,6 +441,9 @@ def ask_table_inserted_data(table_id, root, account):
     window.focus_set()
     window.grab_set()
     window.wait_window()
+
+    if cancel_button_pressed:
+        return None
 
     result = []
     for i, var in enumerate(vars):

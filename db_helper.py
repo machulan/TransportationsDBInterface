@@ -178,6 +178,7 @@ def select_all_from(table_name):
     conn.close()
     return result
 
+
 def update(table_name, old_data, new_data):
     conn = pymssql.connect(**CONNECTION_DATA)
     cursor = conn.cursor()
@@ -223,17 +224,129 @@ def update(table_name, old_data, new_data):
     conn.close()
     return None
 
+
 def delete(table_name, deleted_data):
     conn = pymssql.connect(**CONNECTION_DATA)
     cursor = conn.cursor()
 
+    table_id = DATABASE_TABLE_NAMES.index(table_name)
+    column_names = DATABASE_TABLE_COLUMN_NAMES[table_id]
+    primary_keys = TABLES_PRIMARY_KEYS[table_id]
+    column_types = TABLE_COLUMN_TYPES[table_id]
+
+    where_expr_items = []
+    for primary_key in primary_keys:
+        pos = column_names.index(primary_key)
+        primary_key_value = deleted_data[pos]
+        primary_key_name = column_names[pos]
+        if column_types[pos] == "nvarchar":
+            where_expr_items.append(str(primary_key_name) + "='" + str(primary_key_value) + "'")
+        else:
+            where_expr_items.append(str(primary_key_name) + "=" + str(primary_key_value))
+    where_expr = " AND ".join(where_expr_items)
+
+    print("""
+            DELETE """ + table_name + """ WHERE """ + where_expr + """;
+        """)
+
+    return
+
     cursor.execute("""
-            DELETE """ +  + """ WHERE
+            DELETE """ + table_name + """ WHERE """ + where_expr + """;
         """)
 
     result = cursor.fetchall()
     conn.close()
     return None
+
+
+def insert_into_table(table_name, inserted_data):
+    conn = pymssql.connect(**CONNECTION_DATA)
+    cursor = conn.cursor()
+
+    table_id = DATABASE_TABLE_NAMES.index(table_name)
+    column_names = DATABASE_TABLE_COLUMN_NAMES[table_id]
+    primary_keys = TABLES_PRIMARY_KEYS[table_id]
+    column_types = TABLE_COLUMN_TYPES[table_id]
+
+    column_expr_items = []
+    for column_name in column_names:
+        column_expr_items.append(str(column_name))
+    column_expr = ", ".join(column_expr_items)
+
+    values_expr_items = []
+    for pos, item in enumerate(inserted_data):
+        if column_types[pos] == 'nvarchar':
+            values_expr_items.append("'" + str(item) + "'")
+        else:
+            values_expr_items.append(str(item))
+    value_expr = ", ".join(values_expr_items)
+
+    print("""SET IDENTITY_INSERT """ + table_name + """ ON
+            INSERT """ + table_name + """
+                (""" + column_expr + """)
+            VALUES
+                (""" + value_expr + """);
+            SET IDENTITY_INSERT """ + table_name + """ OFF
+        """)
+
+    return
+
+    cursor.execute("""SET IDENTITY_INSERT """ + table_name + """ ON
+            INSERT """ + table_name + """
+                """ + str(tuple(column_names)) + """
+            VALUES
+              (""" + value_expr + """);
+            SET IDENTITY_INSERT """ + table_name + """ OFF
+        """)
+
+    result = cursor.fetchall()
+    conn.close()
+    return None
+
+
+def insert_into_view(view_name, inserted_data):
+    conn = pymssql.connect(**CONNECTION_DATA)
+    cursor = conn.cursor()
+
+    view_id = DATABASE_VIEW_NAMES.index(view_name)
+    column_names = DATABASE_VIEW_COLUMN_NAMES[view_id]
+    # primary_keys = TABLES_PRIMARY_KEYS[table_id]
+    column_types = VIEW_COLUMN_TYPES[view_id]
+
+    column_expr_items = []
+    for column_name in column_names:
+        column_expr_items.append(str(column_name))
+    column_expr = ", ".join(column_expr_items)
+
+    values_expr_items = []
+    for pos, item in enumerate(inserted_data):
+        if column_types[pos] == 'nvarchar':
+            values_expr_items.append("'" + str(item) + "'")
+        else:
+            values_expr_items.append(str(item))
+    value_expr = ", ".join(values_expr_items)
+
+    print("""
+            INSERT INTO """ + view_name + """
+                (""" + column_expr + """)
+            VALUES
+                (""" + value_expr + """);
+        """)
+
+    return
+
+    cursor.execute("""
+            INSERT INTO """ + view_name + """
+                (""" + column_expr + """)
+            VALUES
+                (""" + value_expr + """);
+        """)
+
+    result = cursor.fetchall()
+    conn.close()
+    return None
+
 
 # import pyodbc
 #
@@ -328,5 +441,3 @@ if __name__ == '__main__':
     # db = shelve.open('accounts')
     db['TestUser'] = test_user
     print(test_user, 'успешно добавлен в базу данных аккаунтов')
-
-

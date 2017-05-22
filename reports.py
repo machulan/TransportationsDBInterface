@@ -153,8 +153,11 @@ def get_driver_path_lengths(report_name, root, account):
     column_names = ['Идентификатор', 'Имя', 'Фамилия', 'Длина пути']
 
     # print(report_data)
+    constraint = [True] * 4
+    if account.is_user():
+        constraint[0] = False
 
-    grid = db_viewer.ScrolledGridViewer(report_frame, column_names, report_data)
+    grid = db_viewer.ScrolledGridViewer(report_frame, column_names, report_data, constraint)
     grid.pack(expand=YES, fill=BOTH)
 
     # report_viewer_frame = ScrolledFrame(report_frame)
