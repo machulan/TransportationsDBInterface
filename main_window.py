@@ -13,6 +13,7 @@ import db_viewer
 import login
 import reports
 import raw_query
+import search
 import custom_widgets
 
 toolbar = None
@@ -31,7 +32,11 @@ def make_menu(root, account):
     root.config(menu=root_menu)
 
     file_menu = Menu(root_menu, tearoff=False)
-    file_menu.add_command(label='Открыть...', command=do_nothing)
+    # file_menu.add_command(label='Открыть...', command=do_nothing)
+    open_menu = Menu(file_menu, tearoff=False)
+    open_menu.add_command(label='Таблицы...', command=(lambda: db_viewer.run(TABLES, root, account)))
+    open_menu.add_command(label='Представления...', command=(lambda: db_viewer.run(VIEWS, root, account)))
+    file_menu.add_cascade(label='Открыть', menu=open_menu)
     file_menu.add_separator()
     file_menu.add_command(label='Настройки...', command=do_nothing)
     file_menu.add_separator()
@@ -51,12 +56,13 @@ def make_menu(root, account):
     report_menu.add_command(label='Сгенерировать...', command=(lambda: reports.run(root, account)))
     root_menu.add_cascade(label='Отчет', menu=report_menu)
 
+    tools_menu = Menu(root_menu, tearoff=False)
+    tools_menu.add_command(label='Поиск по соединению таблиц...', command=(lambda: search.run(root, account)))
     if account.is_admin():
-        tools_menu = Menu(root_menu, tearoff=False)
         tools_menu.add_command(label='SQL запрос к базе данных...', command=(lambda: raw_query.make_raw_query(root)))
-        tools_menu.add_separator()
-        tools_menu.add_command(label='Статистика', command=(lambda: do_nothing()))
-        root_menu.add_cascade(label='Инструменты', menu=tools_menu)
+    tools_menu.add_separator()
+    tools_menu.add_command(label='Статистика', command=(lambda: do_nothing()))
+    root_menu.add_cascade(label='Инструменты', menu=tools_menu)
 
     help_menu = Menu(root_menu, tearoff=False)
     help_menu.add_command(label='Просмотреть справку')
@@ -74,13 +80,13 @@ class ToolbarButton(Button):
     def __init__(self, parent, **options):
         Button.__init__(self, parent, **options)
         self.config(font=TOOLBAR_BUTTON_FONT)
-        #self.config(fg='black', bg='#FFF')  # FFA
+        # self.config(fg='black', bg='#FFF')  # FFA
         self.config(fg='black', bg='#BBF')
-        #self.config(fg='black', bg='#CCC')
-        #self.bind('<>', )
+        # self.config(fg='black', bg='#CCC')
+        # self.bind('<>', )
         self.config(activebackground='#DDF')
-        #self.bind('<Tab>', self.config(bg='yellow'))
-        #self.bind('<Escape>', self.config(bg='#BBF'))
+        # self.bind('<Tab>', self.config(bg='yellow'))
+        # self.bind('<Escape>', self.config(bg='#BBF'))
 
 
 def make_toolbar(root, account):
@@ -92,14 +98,14 @@ def make_toolbar(root, account):
     toolbar.config(bg='#CCF')  # FFA
 
     clear_main_frame_button = ToolbarButton(toolbar, text='Очистить main_frame')
-    #clear_main_frame_button.pack(side=LEFT, fill=Y)
+    # clear_main_frame_button.pack(side=LEFT, fill=Y)
     clear_main_frame_button.config(command=(lambda: clear_main_frame(root, account)))
 
-    open_table_button = ToolbarButton(toolbar, text='Таблица...')
+    open_table_button = ToolbarButton(toolbar, text='Таблицы')
     open_table_button.pack(side=LEFT, fill=Y)
     open_table_button.config(command=(lambda: db_viewer.run(TABLES, root, account)))
 
-    open_view_button = ToolbarButton(toolbar, text='Представление...')
+    open_view_button = ToolbarButton(toolbar, text='Представления')
     open_view_button.pack(side=LEFT, fill=Y)
     open_view_button.config(command=(lambda: db_viewer.run(VIEWS, root, account, )))
 
@@ -108,9 +114,13 @@ def make_toolbar(root, account):
         make_row_query_button.pack(side=LEFT, fill=Y)
         make_row_query_button.config(command=(lambda: raw_query.make_raw_query(root)))
 
-    make_report_button = ToolbarButton(toolbar, text='Отчет...')
+    make_report_button = ToolbarButton(toolbar, text='Отчеты')
     make_report_button.pack(side=LEFT, fill=Y)
     make_report_button.config(command=(lambda: reports.run(root, account)))
+
+    make_report_button = ToolbarButton(toolbar, text='Поиск по соединению таблиц')
+    make_report_button.pack(side=LEFT, fill=Y)
+    make_report_button.config(command=(lambda: search.run(root, account)))
 
     logout_button = ToolbarButton(toolbar)
     logout_image_path = '../TransportationsDBInterface/resourses/logout2.png'
@@ -148,7 +158,7 @@ def clear_grid_viewer_toolbar1():
         grid_viewer_toolbar_copy = grid_viewer_toolbar.children.copy()
         for key, widget in grid_viewer_toolbar_copy.items():
             widget.destroy()
-        # grid_viewer_toolbar
+            # grid_viewer_toolbar
 
 
 def make_grid_viewer_toolbar1(root, account):
@@ -242,7 +252,7 @@ def run(root, account):
     make_menu(root, account)
     # make_toolbar(root, account)
 
-    #make_grid_viewer_toolbar(root, account)
+    # make_grid_viewer_toolbar(root, account)
 
     make_main_frame(root)
 

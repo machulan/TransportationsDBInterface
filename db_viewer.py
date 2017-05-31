@@ -3,7 +3,7 @@ import tkinter.tix as tix
 import tkinter.ttk as ttk
 import tkinter.font as tkinterfont
 
-from tkinter.messagebox import showinfo, showerror, showwarning
+from tkinter.messagebox import showinfo, showerror, showwarning, askokcancel
 
 from resourses.constants import *
 from styles import *
@@ -228,6 +228,11 @@ def delete_data_from(table_id, root, account):
         return
 
     deleted_data = selected_item['values']
+
+    deletion_confirmed = askokcancel('Внимание', 'Вы действительно хотите удалить выбранную запись?')
+    if not deletion_confirmed:
+        print('Операция удаления отменена')
+        return
     # new_data = dialogs.ask_table_inserted_data(table_id, root, account)
     # primary_keys = TABLES_PRIMARY_KEYS[table_id]
 
@@ -237,7 +242,7 @@ def delete_data_from(table_id, root, account):
 
     # open_table(table_id, root, account)
 
-    showinfo('Справка', 'Данные успешно удалены!')
+    showinfo('Справка', 'Запись успешно удалена!')
 
 
 def update_data_of(table_id, root, account):
@@ -253,6 +258,9 @@ def update_data_of(table_id, root, account):
     old_data = selected_item['values']
     new_data = dialogs.ask_table_inserted_data(table_id, root, account)
     # primary_keys = TABLES_PRIMARY_KEYS[table_id]
+    if new_data is None:
+        print('Cancel button pressed')
+        return
 
     new_data = list(new_data)
     for i, old_item in enumerate(old_data):
@@ -276,7 +284,7 @@ def make_table_toolbar(table_id, root, account):
     global table_toolbar
 
     show_child_records_button = main_window.ToolbarButton(table_toolbar, text='Дочерние записи...')
-    show_child_records_button.pack(side=RIGHT, fill=Y)
+    show_child_records_button.pack(side=LEFT, fill=Y)
     show_child_records_button.config(command=(lambda: show_child_records(table_id, root, account)))
 
     if account.is_admin():
