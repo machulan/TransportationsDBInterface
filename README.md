@@ -6,6 +6,14 @@ ABOUT
 This is the university project that makes you laugh at such kind of shit you produce.
 Python 3.5 was chosen as the project language. 
 
+YOU NEED
+
+Python 3.5, pymssql
+
+USED MODULES/LIBRARIES
+
+tkinter, shelve, pymssql, datetime, sys
+
 SOME HISTORY
 
 SHIT! The history of searching Python library or module or something that give the GUI a connection with 
